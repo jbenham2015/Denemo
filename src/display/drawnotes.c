@@ -277,7 +277,7 @@ draw_chord (cairo_t * cr, objnode * curobj, gint xx, gint y, gint mwidth, gint *
         {
           note *thenote = (note *) thechord.notes->data;
           cairo_translate (cr, xx, y + thenote->y);
-          cairo_scale (cr, 0.8, 0.8);
+          cairo_scale (cr, 0.8, thechord.notes->next?1.0:0.8); //do not scale height if it is a grace note chord
           cairo_translate (cr, -xx, -(y + thenote->y));
         }
       //g_debug("Invisible is %d\n", mudelaitem->isinvisible);
