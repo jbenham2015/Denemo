@@ -390,6 +390,10 @@ static gchar * get_error_point (gchar *bytes, gint *line, gint *col)
     if (error) {
 		return error;
 	}
+	error = g_strrstr (bytes, "fatal error:");
+    if (error) {
+		return error;
+	}
     return NULL;
 }
 void
