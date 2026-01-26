@@ -279,6 +279,7 @@ SCM scheme_set_midi_capture (SCM);
 SCM scheme_virtual_keyboard (SCM);
 SCM scheme_toggle_playalong (void);
 SCM scheme_toggle_conduct (void);
+SCM scheme_playalong_active (void);
 SCM scheme_compute_midi_note_durations (void);
 SCM scheme_get_marked_midi_note_as_lilypond (void);
 SCM scheme_get_marked_midi_note (void);

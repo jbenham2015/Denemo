@@ -6587,6 +6587,11 @@ scheme_toggle_conduct (void)
   pb_conduct (get_conduct_button ());
   return SCM_BOOL (Denemo.project->midi_destination & MIDICONDUCT);
 }
+SCM
+scheme_playalong_active (void)
+{
+  return SCM_BOOL (Denemo.project->midi_destination & MIDIPLAYALONG);
+}
 
 SCM scheme_midi_record (void)
 {
