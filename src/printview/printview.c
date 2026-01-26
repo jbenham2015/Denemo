@@ -1877,10 +1877,12 @@ popup_tweak_menu (void)
 static gboolean respond_while_playing  (G_GNUC_UNUSED GtkWidget * widget, GdkEventButton * event)
 	{
 	  gboolean left = (event->button == 1);
-      switch_back_to_main_window ();
+      
+		
       if (audio_is_playing ())
 		{
 		gint xx, yy;
+		switch_back_to_main_window ();
 		if (left)
 			{
 				get_window_position (&xx, &yy);
@@ -1933,7 +1935,8 @@ printarea_button_press (G_GNUC_UNUSED GtkWidget * widget, GdkEventButton * event
 	if (!Denemo.project->movement->divert_key_event)
 		{
 			call_out_to_guile ("(DenemoStop)");
-			switch_back_to_main_window ();
+			//if (!(Denemo.project->midi_destination & MIDIPLAYALONG))
+			//	switch_back_to_main_window ();
 		}
 	markx = -1;
 	return TRUE;
