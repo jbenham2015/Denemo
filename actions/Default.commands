@@ -5862,7 +5862,7 @@ for second and subsequent systems</_tooltip>
         <action>MetronomeMark</action>
         <menupath>/ObjectMenu/Directives/Markings</menupath>
         <_label>Tempi and Metronome Marks</_label>
-        <_tooltip>Insert tempi and/or metronome marks, printed or not, adjust playback tempo to suit</_tooltip>
+        <_tooltip>Insert tempi and/or metronome marks, printed or not, adjust playback tempo to suit. Must be present in every part!</_tooltip>
       </row>
       <row type="scheme">
         <action>TenutoSelectionSwitcher</action>
