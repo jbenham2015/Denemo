@@ -1156,7 +1156,7 @@ pb_play (GtkWidget * button)
 #ifdef G_OS_WIN32
 	call_out_to_guile ("(d-PlayPause)");
 #else
-    call_out_to_guile ("(DenemoPlayScroll)");
+    call_out_to_guile ("(if (d-PlayAlongActive)(DenemoPlayAlongPlay)(DenemoPlayScroll))");
 #endif
 }
 

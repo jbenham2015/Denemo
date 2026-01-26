@@ -1,2 +1,5 @@
-;PlayWithScrolling
-(DenemoPlayScroll)
+(d-Stop)
+(if (d-PlayAlongActive)
+	(DenemoPlayAlongPlay)
+			;PlayWithScrolling
+	(DenemoPlayScroll))

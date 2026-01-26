@@ -443,6 +443,14 @@
 			(set! DenemoPlay::Pause #f)
 			(d-OneShotTimer 50 "(DenemoPlay::scroll)"))))
 
+(define (DenemoPlayAlongPlay)
+	(d-CreateTimebase)
+	(d-SetPlaybackInterval (d-GetMidiOnTime) -1)
+	(define midi (d-GetMidi))
+	(disp "Starting play along play")
+	(d-SetMidiCapture #f)
+	(d-PutMidi midi)
+	(d-Play "(disp \"Play (along) finished\")"))
 ;Scripted start stop - use on Windows.
 (define-once DenemoPaused? #f)
 (define-once DenemoPauseTime 0) ;time to start playing at when un-pausing
