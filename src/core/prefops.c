@@ -29,7 +29,7 @@ static gint readxmlprefsFile (gchar * filename);
 static void set_default_lilypond_path (void)
 {
 #ifdef G_OS_WIN32
-  ret->lilypath = g_string_new (g_build_filename (get_system_bin_dir (), "lilypond-windows.exe", NULL));       //We don't assume the file assoc works - we are installing this anyway to a known place,the option  neither lilypond-windows.exe nor the -dgui option are used
+  ret->lilypath = g_string_new (g_build_filename (get_system_bin_dir (), "lilypond.exe", NULL));       //We don't assume the file assoc works - we are installing this anyway to a known place,the option  neither lilypond-windows.exe nor the -dgui option are used. There is no more lilypond-windows in 2.24.4.
 #else /* !G_OS_WIN32 */
  #ifdef _GUB_BUILD_
    #ifdef _MACH_O_
