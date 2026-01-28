@@ -7,7 +7,7 @@
       <row type="scheme">
         <action>MetronomeMark</action>
         <_label>Tempi and Metronome Marks</_label>
-        <_tooltip>Insert tempi and/or metronome marks, printed or not, adjust playback tempo to suit</_tooltip>
+        <_tooltip>Insert tempi and/or metronome marks, printed or not, adjust playback tempo to suit. Must be present in every part!</_tooltip>
       </row>
     </map>
   </merge>

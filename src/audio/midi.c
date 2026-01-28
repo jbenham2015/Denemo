@@ -788,12 +788,15 @@ initialize_until_time (void)
     play_until = G_MAXDOUBLE;
 }
 
-//test if the midi event in buf is a note-on for the current note
+//for PLAYALONG:
+//Play the passed midi event  in buf. 
+// Test if the midi event is a note-on for the current note
 //if so set play_until
 //advance cursor to next note
 static void
 advance_until_time (gchar * buf)
 {
+  play_adjusted_midi_event (buf); //play the note, even if it is wrong
   if (Denemo.project->movement->currentobject)
     {
       DenemoObject *obj = Denemo.project->movement->currentobject->data;
