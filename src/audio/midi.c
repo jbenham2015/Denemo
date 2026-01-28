@@ -796,7 +796,9 @@ initialize_until_time (void)
 static void
 advance_until_time (gchar * buf)
 {
-  play_adjusted_midi_event (buf); //play the note, even if it is wrong
+  gboolean conduct = Denemo.project->midi_destination & MIDICONDUCT;
+  if (!conduct)
+	play_adjusted_midi_event (buf); //play the note, even if it is wrong
   if (Denemo.project->movement->currentobject)
     {
       DenemoObject *obj = Denemo.project->movement->currentobject->data;
@@ -810,7 +812,8 @@ advance_until_time (gchar * buf)
           if (thechord->notes)
             {
               note *thenote = thechord->notes->data;
-              if (((buf[0] & 0xf0) == MIDI_NOTE_ON) && buf[2] && buf[1] == (dia_to_midinote (thenote->mid_c_offset) + thenote->enshift))
+              if (((buf[0] & 0xf0) == MIDI_NOTE_ON) && buf[2] && 
+				(conduct || (buf[1] == (dia_to_midinote (thenote->mid_c_offset) + thenote->enshift))))
                 {
                   gdouble thetime = get_time ();
                   Denemo.project->movement->start_player = thetime - obj->earliest_time;
