@@ -210,13 +210,13 @@ init_environment()
 #ifdef G_OS_WIN32
   gchar *prefix = g_win32_get_package_installation_directory (NULL, NULL);
   gchar *guile = g_build_filename (prefix, "share", "guile", NULL);
-  gchar *guile_1_8 = g_build_filename (guile, "1.8", NULL);
+  gchar *guile_3_0 = g_build_filename (guile, "3.0", NULL);
   gchar *lilypond_current_scm = g_build_filename (prefix, "share", "lilypond", "current", "scm", NULL);
   gchar *denemo_scm = g_build_filename (get_system_data_dir (), COMMANDS_DIR, NULL);
   gchar *denemo_modules_scm = g_build_filename (get_system_data_dir (), COMMANDS_DIR, "denemo-modules", NULL);
   if (g_file_test (guile, G_FILE_TEST_EXISTS))
     {
-      gchar *guile_path = g_strconcat (guile, ";", guile_1_8, ";", denemo_scm, ";", denemo_modules_scm, ";", lilypond_current_scm, NULL);
+      gchar *guile_path = g_strconcat (guile, ";", guile_3_0, ";", denemo_scm, ";", denemo_modules_scm, ";", lilypond_current_scm, NULL);
       //FIXME TRUE means we overwrite any installed version of lilyponds scm, FALSE risks not putting denemos scm in the path...
       g_setenv ("GUILE_LOAD_PATH", guile_path, TRUE);
       g_info ("Setting GUILE_LOAD_PATH=%s\n", guile_path);
@@ -228,7 +228,7 @@ init_environment()
   g_setenv ("PANGO_SO_EXTENSION", ".dll", TRUE);
   g_info ("Setting PANGO_PREFIX=%s\n", prefix);
 
-  g_setenv ("GTK_MODULE_VERSION", "2.10.0", TRUE);
+  g_setenv ("GTK_MODULE_VERSION", "3.0.0", TRUE);
   g_setenv ("GTK_SO_EXTENSION", ".dll", TRUE);
   g_setenv ("GTK_PREFIX", prefix, TRUE);
   g_info ("Setting GTK_PREFIX=%s\n", prefix);
