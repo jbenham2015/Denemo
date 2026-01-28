@@ -223,8 +223,6 @@ init_environment()
     }
   else
     warningdialog (_("You may need to set GUILE_LOAD_PATH to the directory where you have ice9 installed\n"));
-  g_setenv ("PANGO_PREFIX", prefix, TRUE);
-  g_info ("Setting PANGO_PREFIX=%s\n", prefix);
 
   g_setenv ("GTK_MODULE_VERSION", "3.0.0", TRUE);
   g_setenv ("GTK_SO_EXTENSION", ".dll", TRUE);
