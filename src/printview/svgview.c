@@ -415,8 +415,8 @@ static void compute_timings (gchar *base, GList *ids)
                     {//breve duration is log = -1  if longa log = -2
 						//e.g.  0	rest	log = -1	2000	point-and-click 9 21
 					gchar basedur[10];
-					if (1 == fscanf (fp, "%4s", basedur))
-						{
+					if (1 == fscanf (fp, "%9s", basedur))
+						{ //g_print("basedur is %s\n", basedur);
 						if (!strcmp (basedur, "log"))
 							fscanf (fp, " %*s %*s");
                         if (!strcmp (type, "note"))
