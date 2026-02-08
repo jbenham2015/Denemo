@@ -1,8 +1,12 @@
 ;;;PercentRepeat
 ;;;repeats the selection the given number of times
+
 (if PercentRepeat::params
     (d-InfoDialog (_ "This Denemo Directive is part of a set of four creating a \"Percent Repeat\". Be sure to delete them all if you delete one of them."))
-    (if (d-IsInSelection)
+    (begin
+	  (if (and (not (d-HasSelection)) (UnderfullMeasure?))
+		 (d-WarningDialog (_ "You must select the music to be repeated"))
+	  (if (d-IsInSelection) 
         (let ((tag "PercentRepeat") (start-measurenum #f)(num_repeats (d-GetUserInput (_ "Percent Repeat") (_ "Give number of further repeats 1,2,...") "1")))
          
             (MoveToEndOfSelection)
@@ -53,4 +57,6 @@
                     (d-MoveCursorRight)
                     (d-RefreshDisplay)
                     (d-SetSaved #f))))
-        (d-WarningDialog (_ "Cursor not in selection"))))
+        (d-WarningDialog (_ "Cursor not in selection"))))))
+			
+			

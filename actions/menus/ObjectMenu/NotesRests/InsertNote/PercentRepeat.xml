@@ -8,7 +8,14 @@
         <action>PercentRepeat</action>
         <after>FillUpMeasure</after>
         <_label>Insert Percent Style Repeat</_label>
-        <_tooltip>Creates a repeat from the selection, typeset in \"percent\" style.</_tooltip>
+        <_tooltip>For one-bar or two-bar repeats, or part-bar repeats.
+Only enter the music for the first iteration of what is to be repeated.
+Select the part bar or whole bar or bars to be repeated (If more than one voice, select one of the voices only). 
+Type the number of further repeats in the first pop up dialog. 
+The second pop up dialog allows you to either have no number counts for the repeats (0) or a count number on every repeat (1) or a count number every n repeats (n).
+If there is more than one voice you can leave the other voice blank, 
+or if you want that voice to play back then do the same process that you did with the first voice for the second voice. 
+For part bars there is no count number option.</_tooltip>
       </row>
     </map>
   </merge>
