@@ -1438,7 +1438,8 @@ pb_conduct (GtkWidget * button)
 
 void
 pb_playalong (GtkWidget * button)
-{
+{ 
+  implement_show_print_view (TRUE);
   Denemo.project->midi_destination ^= MIDIPLAYALONG;
   if (Denemo.project->midi_destination & MIDIPLAYALONG)
     gtk_button_set_label (GTK_BUTTON (button), _("Switch to Normal Playback"));
@@ -3563,7 +3564,7 @@ create_window (void)
       midiplayalongbutton =
         create_playbutton (hbox, _("Switch to Play Along Playback"), pb_playalong, 
         _("Use this to play one part while Denemo plays the other ones for you. \
-Use with the Playback View. Click on a note to start playing from and play that note on the MIDI keyboard, the notes for that moment will sound and as you play onwards on the MIDI keyboard \
+Typeset the movement first. Then use the Playback View from the Playback/Record menu. Click on the note in the Playback View where you want to start playing from and play that note on the MIDI keyboard, the notes for that moment will sound and as you play onwards on the MIDI keyboard \
 Denemo will play the notes in the other parts until the start of the next note in the part you are playing whereupon it will wait if you have not already played it. \
 This means you can introduce rubato and step through the harmonies. You can play other notes as well, e.g. to try out an accompaniment."));
 
