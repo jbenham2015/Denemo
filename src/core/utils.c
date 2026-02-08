@@ -3319,10 +3319,10 @@ show_tooltip (GtkWidget * w, GdkEvent * ev, gchar * text)
         gtk_window_move (GTK_WINDOW (TooltipPopup), mouse_x + 10, mouse_y + 15);
         gtk_widget_show_all (TooltipPopup);
 
-        // Auto-hide after 15 seconds to prevent permanent tooltips
+        // Auto-hide after 30 seconds to prevent permanent tooltips
         if (hide_tooltip_timeout_id > 0)
           g_source_remove (hide_tooltip_timeout_id);
-        hide_tooltip_timeout_id = g_timeout_add (15000, tooltip_auto_hide, NULL);
+        hide_tooltip_timeout_id = g_timeout_add (30000, tooltip_auto_hide, NULL);
 
         return FALSE;
       }
