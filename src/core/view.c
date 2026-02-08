@@ -3205,8 +3205,7 @@ create_playbutton (GtkWidget * box, gchar * thelabel, gpointer callback, gchar *
   if (callback)
     g_signal_connect (G_OBJECT(button), "clicked", G_CALLBACK (callback), NULL);
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, TRUE, 0);
-  if (Denemo.prefs.newbie)
-	gtk_widget_set_tooltip_text (button, tooltip);
+  gtk_widget_set_tooltip_text (button, tooltip);
   return label;
 }
 static gboolean scheme_is_true (gchar *sym)
@@ -3555,13 +3554,18 @@ create_window (void)
       g_signal_connect (G_OBJECT (midi_in_button), "clicked", midi_in_menu, NULL);
       midi_in_status = gtk_label_new (_("Appending/Editing Pitches"));
       gtk_container_add (GTK_CONTAINER (midi_in_button), midi_in_status);
-      gtk_widget_set_tooltip_text (midi_in_status, _("This tells you what will happen to a MIDI in event from your controller. Click here or use the Control Shift or ALT keys, or caps lock to affect what will happen. Moving the cursor into the display will revert to editing notes."));
-      gtk_label_set_use_markup (GTK_LABEL (midi_in_status), TRUE);
+      gtk_widget_set_tooltip_text (midi_in_button, _("This tells you what will happen to a MIDI in event from your controller. \
+      Click here or use the Control Shift or ALT keys, or caps lock to affect what will happen. \
+      Move the cursor into the display to register the change."));
+      gtk_label_set_use_markup (GTK_LABEL (midi_in_button), TRUE);
       gtk_box_pack_start (GTK_BOX (hbox), midi_in_button, FALSE, TRUE, 0);
 
       midiplayalongbutton =
         create_playbutton (hbox, _("Switch to Play Along Playback"), pb_playalong, 
-        _("When in playalong mode, on clicking Play, the music plays until it reaches the Denemo cursor\nFrom then on you must play the notes at the cursor to progress the playback.\nSo if you set the cursor on the first note of the part you want to play, then once you have pressed play you can play along with Denemo, with Denemo filling in the other parts and waiting if you play a wrong note."));
+        _("Use this to play one part while Denemo plays the other ones for you. \
+Use with the Playback View. Click on a note to start playing from and play that note on the MIDI keyboard, the notes for that moment will sound and as you play onwards on the MIDI keyboard \
+Denemo will play the notes in the other parts until the start of the next note in the part you are playing whereupon it will wait if you have not already played it. \
+This means you can introduce rubato and step through the harmonies. You can play other notes as well, e.g. to try out an accompaniment."));
 
       midiconductbutton =
         create_playbutton (hbox, _("Conductor OFF"), pb_conduct, 
@@ -3580,7 +3584,17 @@ create_window (void)
 	}
 
 	  create_helpbutton (hbox,_("Recording Menu"), pb_midi_record_help,_("Menu of commands for recording MIDI-in"));
-#define MIDI_CONTROL_HELP _("Controls for managing input from a MIDI controller (e.g. keyboard) attached to the computer.\nYou may need to select your MIDI device first using MainMenu → Edit → Change Preferences → MIDI\nlooking for MIDI in devices (turn your device on first).\nWhen you have a MIDI controller durations are inserted without any pitch (they appear in brown)\n playing on the controller puts the pitches onto the durations.\nThe Shift and Control and ALT keys can also be used for listening without entering notes,\nchecking pitches entered and entering chords.\nThe foot pedal can also be used for chords. Release the ALT key and re-press to start a new chord\n- timing is unimportant, play the chord fast or slow.\nOr use Input → MIDI → Chord Entry Without Pedal to enter chords based on playing the notes simultaneously")
+#define MIDI_CONTROL_HELP _("Controls for managing input from a MIDI controller (e.g. keyboard) attached to the computer.\n\
+You may need to select your MIDI device first using MainMenu → Edit → Change Preferences → MIDI\n\
+looking for MIDI in devices (turn your device on first).\n\
+When you have a MIDI controller durations are inserted without any pitch (they appear in yellowish brown)\n\
+playing on the controller puts the pitches onto the durations.\n\
+While in Appending/Listening the Shift can be held down for listening without entering notes,\n\
+while the Control key key can be held down for checking pitches entered\n\
+and the Alt key for entering chords.\n(The MIDI foot pedal can also be used for chords).\n\
+Release the ALT key and re-press to start a new chord - timing is unimportant, play the chord fast or slow.\n\
+Or use Input → MIDI → Chord Entry Without Pedal to enter chords based on playing the notes simultaneously.\n\
+Play Along Playback means the playback will follow as you play the notes of the current staff - it is best used with Playback/Record->Playback View.")
       midihelpbutton = create_helpbutton (hbox, _( "Help"), NULL, MIDI_CONTROL_HELP);
       g_signal_connect_swapped (midihelpbutton, "clicked", G_CALLBACK(infodialog), MIDI_CONTROL_HELP);
       
