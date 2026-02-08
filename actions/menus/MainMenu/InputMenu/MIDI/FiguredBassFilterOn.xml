@@ -7,7 +7,7 @@
       <row type="scheme">
         <action>FiguredBassFilterOn</action>
         <_label>Figured Bass Filter On</_label>
-        <_tooltip>Start filtering MIDI events, First note is bass, hold this down while entering notes for figures. Pedal changes harmony on same bass.</_tooltip>
+        <_tooltip>Start filtering MIDI events, First note is bass, hold this down while entering notes for figures. Repeating the note signals a further group of figures to follow for this bass note. Playing a note below the bass note signals a continuation line from the previous figure, twice stops the continuation</_tooltip>
       </row>
     </map>
   </merge>
