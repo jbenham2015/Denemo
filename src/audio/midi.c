@@ -796,9 +796,9 @@ initialize_until_time (void)
 static void
 advance_until_time (gchar * buf)
 {
+  gboolean playnote = TRUE; //don't play correct notes
   gboolean conduct = Denemo.project->midi_destination & MIDICONDUCT;
-  if (!conduct)
-	play_adjusted_midi_event (buf); //play the note, even if it is wrong
+
   if (Denemo.project->movement->currentobject)
     {
       DenemoObject *obj = Denemo.project->movement->currentobject->data;
@@ -837,6 +837,7 @@ advance_until_time (gchar * buf)
                           play_until = obj->earliest_time - SHAVING;
                           //g_debug("play until %f\n", play_until);
                         }
+                       playnote = FALSE; //do not play note as it will be played anyway
                     }
                   while (!thechord->notes);
                 }
@@ -847,6 +848,8 @@ advance_until_time (gchar * buf)
     }
   else
     g_warning ("Not on an object");
+ if ((!conduct) && playnote)
+	play_adjusted_midi_event (buf); //play the note, even if it is wrong
 }
 
 static void
