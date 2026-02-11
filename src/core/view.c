@@ -52,7 +52,7 @@
 
 static GtkWidget *playbutton;
 static GtkWidget *midihelpbutton;
-static GtkWidget *audiorecordbuttonlabel;
+static GtkWidget *audiorecordbutton;
 static GtkWidget *midiconductbutton;
 static GtkWidget *midi_in_status;
 static GtkWidget *midiplayalongbutton;
@@ -88,6 +88,7 @@ typedef enum
 GtkWidget *
 get_playalong_button ()
 {
+	g_print ("%p", midiplayalongbutton);
   return midiplayalongbutton;
 }
 
@@ -1156,6 +1157,7 @@ pb_play (GtkWidget * button)
 #ifdef G_OS_WIN32
 	call_out_to_guile ("(d-PlayPause)");
 #else
+g_print ("pb play: reached\n");
     call_out_to_guile ("(if (d-PlayAlongActive)(DenemoPlayAlongPlay)(DenemoPlayScroll))");
 #endif
 }
@@ -1439,7 +1441,7 @@ pb_conduct (GtkWidget * button)
 void
 pb_playalong (GtkWidget * button)
 { 
-  implement_show_print_view (TRUE);
+  //implement_show_print_view (TRUE);
   Denemo.project->midi_destination ^= MIDIPLAYALONG;
   if (Denemo.project->midi_destination & MIDIPLAYALONG)
     gtk_button_set_label (GTK_BUTTON (button), _("Switch to Normal Playback"));
@@ -1453,7 +1455,8 @@ void highlight_audio_record (void)
 {
   static gboolean on;
   on = !on;
-	gtk_label_set_markup(GTK_LABEL (audiorecordbuttonlabel), on? 
+  GtkWidget *label = gtk_bin_get_child (GTK_BIN(audiorecordbutton));
+  gtk_label_set_markup(GTK_LABEL (label), on? 
 			"<span foreground=\"black\"><b> ▇ </b></span>":
 			"<span foreground=\"red\"><b>●</b></span>");
 }
@@ -1462,7 +1465,8 @@ void highlight_audio_record (void)
 static void
 pb_audiorecord (GtkWidget * button)
 {  
-  gtk_label_set_markup(GTK_LABEL (audiorecordbuttonlabel),  "<span foreground=\"red\"><b>●</b></span>");
+  GtkWidget *label = gtk_bin_get_child (GTK_BIN(audiorecordbutton));
+  gtk_label_set_markup(GTK_LABEL (label),  "<span foreground=\"red\"><b>●</b></span>");
   if (Denemo.prefs.maxrecordingtime)
     {
       Denemo.project->audio_recording = !Denemo.project->audio_recording;
@@ -3201,13 +3205,16 @@ create_playbutton (GtkWidget * box, gchar * thelabel, gpointer callback, gchar *
     gtk_label_set_markup(GTK_LABEL (label), thelabel);
     }
   else
-    button = gtk_button_new ();
+    {//is this ever called???
+	button = gtk_button_new_with_label ("");
+    label = gtk_bin_get_child (GTK_BIN(button));
+	}
   gtk_widget_set_can_focus (button, FALSE);
   if (callback)
     g_signal_connect (G_OBJECT(button), "clicked", G_CALLBACK (callback), NULL);
   gtk_box_pack_start (GTK_BOX (box), button, FALSE, TRUE, 0);
   gtk_widget_set_tooltip_text (button, tooltip);
-  return label;
+  return button;
 }
 static gboolean scheme_is_true (gchar *sym)
 {
@@ -3216,14 +3223,15 @@ static gboolean scheme_is_true (gchar *sym)
 
 static gboolean playbutton_icon (void)
 {
+	GtkLabel *playbutton_label = gtk_bin_get_child (GTK_BIN(playbutton));
 	gboolean paused = is_paused () || scheme_is_true ("DenemoPaused?");
 	
 	if (is_playing() && (!paused))
-	  gtk_label_set_markup (GTK_LABEL (playbutton), "<span foreground=\"dark orange\"><b>Ⅱ</b></span>");
+	  gtk_label_set_markup (GTK_LABEL (playbutton_label), "<span foreground=\"dark orange\"><b>Ⅱ</b></span>");
 	else
 		paused?
-		  gtk_label_set_markup (GTK_LABEL (playbutton), "<span foreground=\"dark orange\"><b>▶</b></span>"):
-		  gtk_label_set_markup (GTK_LABEL (playbutton), "<span foreground=\"blue\"><b>▶</b></span>");
+		  gtk_label_set_markup (GTK_LABEL (playbutton_label), "<span foreground=\"dark orange\"><b>▶</b></span>"):
+		  gtk_label_set_markup (GTK_LABEL (playbutton_label), "<span foreground=\"blue\"><b>▶</b></span>");
 	return FALSE;
 }
 void
@@ -3415,7 +3423,7 @@ create_window (void)
 
 
 
-    audiorecordbuttonlabel = create_playbutton (inner, "<span foreground=\"red\"><b>●</b></span>", pb_audiorecord, _("Starts/Stops recording the audio output from Denemo.\nRecords live performance and/or playback,\nsave to disk to avoid overwriting previous recordings."));
+    audiorecordbutton = create_playbutton (inner, "<span foreground=\"red\"><b>●</b></span>", pb_audiorecord, _("Starts/Stops recording the audio output from Denemo.\nRecords live performance and/or playback,\nsave to disk to avoid overwriting previous recordings."));
     exportbutton = create_helpbutton (inner, "<span foreground=\"green\"><b>☳</b></span>", pb_exportaudio, _("Exports the audio recorded to disk"));
 
  //   create_playbutton (inner, "<span foreground=\"orange\"><b>◀--</b></span>", pb_previous,
