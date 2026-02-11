@@ -206,6 +206,14 @@ DenemoObject *get_object_for_time (gdouble time, gboolean start)
         }
     return NULL;
 }
+
+static 
+gint playalong_highlight = 0xb5;
+void highlight_playback_note (gint color)
+{
+	playalong_highlight = color;//g_print ("set color");
+	gtk_widget_queue_draw (Denemo.playbackview);
+}
 //over-draw the evince widget with padding etc ...
 static gboolean
 overdraw_print (cairo_t * cr)
@@ -280,6 +288,7 @@ overdraw_print (cairo_t * cr)
                        continue;
            if (time > (this - 0.1))
                     { // g_print ("draw note at %.2f %.2f\n", ((Timing *)((g)->data))->x  - (PRINTMARKER/5)/4, ((Timing *)((g)->data))->y - (PRINTMARKER/5)/2 );
+						cairo_set_source_rgba (cr, playalong_highlight/255.0, 0x0/255.0, playalong_highlight/255.0, 0.5);
                         cairo_rectangle (cr, ((Timing *)((g)->data))->x  - (PRINTMARKER/5)/4, ((Timing *)((g)->data))->y - (PRINTMARKER/5)/2, PRINTMARKER/5, PRINTMARKER/5);
                         if(!drew_rectangle)
                             LastTiming = g;
@@ -723,7 +732,16 @@ static void clear_scroll_points (void)
 
 static void help_scroll_points (void)
 {
-    infodialog (_("This the Playback View Window. Click on a note to play from that note to the end. Click again to stop play. Drag between two notes to play from the first to the last, shift drag to create a loop.\nShift-Click on a note to position the Denemo cursor on that note in the Denemo Display.\n For simple scrolling check the box. For more sophisticated control right click on a note when you have scrolled the page to the position you want it to be at when it is playing.\nFirst right click at the start of the second system (this means that the music will not scroll before that); then scroll to position the end and right click the first note of the last system of the piece.\nTo delete a scroll point right-click on it.\nIf there are changes of pace then set extra scroll points to control the scrolling in more detail."));
+    infodialog (_("This is the Playback View Window. Click on a note to play from that note to the end. \
+Click again to stop play. Drag between two notes to play from the first to the last, shift drag to create a loop. \
+Shift-Click on a note to position the Denemo cursor on that note in the Denemo Display. \
+For simple scrolling check the box. For more sophisticated control right click on a note when you have scrolled the page to the position you want it to be at when it is playing. \
+First right click at the start of the second system (this means that the music will not scroll before that); then scroll to position the end and right click the first note of the last system of the piece. \
+To delete a scroll point right-click on it.\nIf there are changes of pace then set extra scroll points to control the scrolling in more detail. \
+For PlayAlong playback left click on the note you want to start playing at - it will sound immediately, but you must still play it on your MIDI keyboard for the playback to advance. \
+If you want an intro use Ctrl-left click - it will play from the bar before until it plays the note you clicked, \
+you have to play that note and then the following ones to continue the playback. \
+You can shape the part you are playing by playing staccato or using rubato to slow up the playback."));
 }
 static void
 playbackview_finished (G_GNUC_UNUSED GPid pid, G_GNUC_UNUSED gint status, gboolean print)
@@ -749,6 +767,7 @@ playbackview_finished (G_GNUC_UNUSED GPid pid, G_GNUC_UNUSED gint status, gboole
       gdouble total_time;
       changecount = Denemo.project->movement->changecount;
       total_time = load_lilypond_midi (NULL, AllPartsTypeset);//g_print ("MIDI file total time = %.2f\n", total_time);
+ 
       Denemo.project->movement->smfsync = Denemo.project->movement->changecount;
       AllPartsTypeset = FALSE;
   }
@@ -1149,9 +1168,14 @@ static void button_release (GtkWidget *event_box, GdkEventButton *event)
                 {
 
                     if ((timing->col == Locationx) && (timing->line == Locationy))
-                        {
+                        {//g_print ("Playing from cursor to end or previous bar to cursor for playalong\n");
                             if (!shift_held_down())
-                              call_out_to_guile ("(d-DenemoPlayCursorToEnd)");
+								{
+										if (control_held_down())
+											call_out_to_guile ("(DenemoPlayIntroToEnd)");
+										else
+											call_out_to_guile ("(d-DenemoPlayCursorToEnd)");
+								}
                             else
                                 call_out_to_guile ("(d-PlayMidiNote 67 255 9 100)");
                             //g_print ("Found same line %d column %d\n", timing->line, timing->col);

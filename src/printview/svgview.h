@@ -6,4 +6,5 @@ install_svgview (GtkWidget * top_vbox);
 void display_svg (gdouble scale, gboolean part);
 gboolean attach_timings (void);
 DenemoObject *get_object_for_time (gdouble time, gboolean start);
+void highlight_playback_note (gint color);
 #endif
