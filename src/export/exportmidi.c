@@ -954,7 +954,7 @@ gdouble load_lilypond_midi (gchar * outfile, gboolean keep) {
     if (smf)
         {
         if (!attach_timings ())
-            g_warning ("Attaching timings to objects failed\n");
+             warningdialog ("You must typeset the score first, otherwise the playback view will only work from the start to the end");
         if (outfile)
             save_smf_to_file (smf, outfile);
         if (!keep )
