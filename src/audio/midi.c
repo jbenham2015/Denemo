@@ -798,7 +798,8 @@ advance_until_time (gchar * buf)
 {
   gboolean playnote = TRUE; //don't play correct notes
   gboolean conduct = Denemo.project->midi_destination & MIDICONDUCT;
-
+  highlight_playback_note(0xb5);
+  //g_print ("RESET\n");
   if (Denemo.project->movement->currentobject)
     {
       DenemoObject *obj = Denemo.project->movement->currentobject->data;
@@ -816,6 +817,7 @@ advance_until_time (gchar * buf)
 				(conduct || (buf[1] == (dia_to_midinote (thenote->mid_c_offset) + thenote->enshift))))
                 {
                   gdouble thetime = get_time ();
+                  highlight_playback_note(0x0);
                   Denemo.project->movement->start_player = thetime - obj->earliest_time;
 
                   if ((!Denemo.prefs.ignore_ties) && thechord->is_tied && cursor_to_next_note ())
