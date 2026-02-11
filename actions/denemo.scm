@@ -442,8 +442,20 @@
 			(d-Play "(disp \"End of scrolled play\")")
 			(set! DenemoPlay::Pause #f)
 			(d-OneShotTimer 50 "(DenemoPlay::scroll)"))))
-
-(define (DenemoPlayAlongPlay)
+			
+;;;;PlayIntro and then cursor to end - assumes playalong set.
+(define (DenemoPlayIntroToEnd)
+	(d-PushPosition)
+	(d-SetPlaybackInterval #t (- (d-GetMidiOnTime) 0.001))
+	;(DenemoSetPlaybackEnd)
+	(d-MoveToMeasureLeft)
+	(while (not (Music?))
+		(d-MoveCursorRight))
+	(DenemoSetPlaybackStart)
+	(d-TogglePlayAlong)
+	(d-Play "(d-PopPosition)(d-TogglePlayAlong)(d-DenemoPlayCursorToEnd)"))
+		
+(define (DenemoPlayAlongPlay) (disp "Reached DenemoPlayAlongPlay now\n")
 	(d-CreateTimebase)
 	(d-SetPlaybackInterval (d-GetMidiOnTime) -1)
 	(define midi (d-GetMidi))
