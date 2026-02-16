@@ -17,7 +17,7 @@
 #include <denemo/denemo.h>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include "core/utils.h"
+#include "core/utils.h"9;37M
 #include "core/prefops.h"
 #include "audio/playback.h"
 #include "core/view.h"
@@ -29,7 +29,7 @@ static gint readxmlprefsFile (gchar * filename);
 static void set_default_lilypond_path (void)
 {
 #ifdef G_OS_WIN32
-  ret->lilypath = g_string_new (g_build_filename (get_system_bin_dir (), "lilypond.exe", NULL));       //We don't assume the file assoc works - we are installing this anyway to a known place,the option  neither lilypond-windows.exe nor the -dgui option are used. There is no more lilypond-windows in 2.24.4.
+  ret->lilypath = g_string_new (g_build_filename (get_system_bin_dir (), "..", "lilypond", "bin", "lilypond-windows.exe", NULL));       //We don't assume the file assoc works - we are installing this anyway to a known place,the option  neither lilypond-windows.exe nor the -dgui option are used. There is no more lilypond-windows in 2.24.4. I created a wrapper lilypond-windows.exe to hide the console. 
 #else /* !G_OS_WIN32 */
  #ifdef _GUB_BUILD_
    #ifdef _MACH_O_
