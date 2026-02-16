@@ -78,8 +78,16 @@ writePalettes (void)
   xmlDocPtr doc;
   xmlNodePtr parent, child;
   gchar *localpal = NULL;
+  gchar *actions_dir = NULL;
 
-  localpal = g_build_filename (get_user_data_dir (TRUE), "actions", "palettes.xml", NULL);
+  // Build the actions directory path
+  actions_dir = g_build_filename (get_user_data_dir (TRUE), "actions", NULL);
+
+  // Create the directory if it doesn't exist
+  g_mkdir_with_parents (actions_dir, 0755);
+
+  // Now build the full file path
+  localpal = g_build_filename (actions_dir, "palettes.xml", NULL);
 
   doc = xmlNewDoc ((xmlChar *) "1.0");
   doc->xmlRootNode = parent = xmlNewDocNode (doc, NULL, (xmlChar *) "Denemo", NULL);
@@ -96,6 +104,8 @@ writePalettes (void)
     } else
     ret = 0;
     xmlFreeDoc (doc);
+    g_free (actions_dir);  // Free the allocated memory
+    g_free (localpal);     // Free this too (it was missing!)
     return ret;
 }
 
