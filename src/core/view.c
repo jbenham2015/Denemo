@@ -88,7 +88,6 @@ typedef enum
 GtkWidget *
 get_playalong_button ()
 {
-	g_print ("%p", midiplayalongbutton);
   return midiplayalongbutton;
 }
 
@@ -3223,7 +3222,7 @@ static gboolean scheme_is_true (gchar *sym)
 
 static gboolean playbutton_icon (void)
 {
-	GtkLabel *playbutton_label = gtk_bin_get_child (GTK_BIN(playbutton));
+	GtkWidget *playbutton_label = gtk_bin_get_child (GTK_BIN(playbutton));
 	gboolean paused = is_paused () || scheme_is_true ("DenemoPaused?");
 	
 	if (is_playing() && (!paused))
@@ -3563,10 +3562,11 @@ create_window (void)
       g_signal_connect (G_OBJECT (midi_in_button), "clicked", midi_in_menu, NULL);
       midi_in_status = gtk_label_new (_("Appending/Editing Pitches"));
       gtk_container_add (GTK_CONTAINER (midi_in_button), midi_in_status);
-      gtk_widget_set_tooltip_text (midi_in_button, _("This tells you what will happen to a MIDI in event from your controller. \
+      GtkWidget *label = gtk_bin_get_child (GTK_BIN(midi_in_button));
+      gtk_widget_set_tooltip_text (label, _("This tells you what will happen to a MIDI in event from your controller. \
       Click here or use the Control Shift or ALT keys, or caps lock to affect what will happen. \
       Move the cursor into the display to register the change."));
-      gtk_label_set_use_markup (GTK_LABEL (midi_in_button), TRUE);
+      gtk_label_set_use_markup (GTK_LABEL(label), TRUE);
       gtk_box_pack_start (GTK_BOX (hbox), midi_in_button, FALSE, TRUE, 0);
 
       midiplayalongbutton =

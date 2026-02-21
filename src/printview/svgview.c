@@ -137,6 +137,7 @@ show_playback_view (void)
         set_toggle (TogglePlaybackView_STRING, TRUE);
     else
         gtk_window_present (GTK_WINDOW (w));
+        gtk_widget_hide (get_playalong_button());//only show toggle in playback view if it is made visible.
 }
 
 
@@ -1315,6 +1316,12 @@ install_svgview (GtkWidget * top_vbox)
   gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
   g_signal_connect_swapped (G_OBJECT (button), "toggled", G_CALLBACK (scroll_toggle), NULL);
 
+    button = (GtkWidget*)gtk_check_button_new_with_label (_("Play Along"));
+    gtk_widget_set_tooltip_markup (button, _( "Sets/Unsets Play Along playback."));
+	if (Denemo.project && Denemo.project->midi_destination & MIDIPLAYALONG)
+		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+	gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
+    g_signal_connect_swapped (G_OBJECT (button), "toggled", G_CALLBACK (pb_playalong), get_playalong_button());
 
 
 
