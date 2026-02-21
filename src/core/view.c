@@ -3332,7 +3332,6 @@ create_window (void)
 #ifdef USE_EVINCE
   install_printpreview ();
 #endif
-  install_svgview (NULL);
 
   outer_main_vbox = gtk_vbox_new (FALSE, 1);
   gtk_container_set_border_width (GTK_CONTAINER (outer_main_vbox), 1);
@@ -3624,7 +3623,8 @@ Play Along Playback means the playback will follow as you play the notes of the 
     }
   }
 
-
+  install_svgview (NULL);
+  
   toolbar = denemo_menusystem_get_widget ("/RhythmToolBar");
   gtk_toolbar_set_style (GTK_TOOLBAR (toolbar), GTK_TOOLBAR_TEXT);
   gtk_box_pack_start (GTK_BOX (outer_main_vbox), toolbar, FALSE, TRUE, 0);

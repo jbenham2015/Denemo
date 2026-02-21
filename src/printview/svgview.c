@@ -54,6 +54,7 @@ static GtkAdjustment *VAdj = NULL;
 static gdouble ScrollTime = -1.0;
 static GtkWidget *ClearScrollPointsButton = NULL;
 static gchar *LilyPondSVGPageSuffix = "-"; // earlier LilyPond versions output -page-n.svg for nth page of SVG
+static GtkWidget *playalong_toggle;
 typedef struct Timing {
     gdouble time;
     gdouble duration;
@@ -133,11 +134,20 @@ static void
 show_playback_view (void)
 {
     GtkWidget *w = gtk_widget_get_toplevel (Denemo.playbackview);
+	if (Denemo.project->midi_destination & MIDIPLAYALONG)
+		{
+			gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (playalong_toggle), TRUE);
+			Denemo.project->midi_destination ^= MIDIPLAYALONG;
+		}
+	else
+		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (playalong_toggle), FALSE);
+
     if (!gtk_widget_get_visible (w))
         set_toggle (TogglePlaybackView_STRING, TRUE);
     else
-        gtk_window_present (GTK_WINDOW (w));
-        gtk_widget_hide (get_playalong_button());//only show toggle in playback view if it is made visible.
+		gtk_window_present (GTK_WINDOW (w));
+		
+	gtk_widget_hide (get_playalong_button());//only show toggle in playback view if it is made visible.
 }
 
 
@@ -1313,15 +1323,15 @@ install_svgview (GtkWidget * top_vbox)
     gtk_widget_set_tooltip_markup (button, _( "Sets/Unsets automatic scrolling. The scrolling can still be manually adjusted if it is too fast/slow."));
 
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
-  gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
-  g_signal_connect_swapped (G_OBJECT (button), "toggled", G_CALLBACK (scroll_toggle), NULL);
+    gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
+    g_signal_connect_swapped (G_OBJECT (button), "toggled", G_CALLBACK (scroll_toggle), NULL);
 
-    button = (GtkWidget*)gtk_check_button_new_with_label (_("Play Along"));
-    gtk_widget_set_tooltip_markup (button, _( "Sets/Unsets Play Along playback."));
+    playalong_toggle = (GtkWidget*)gtk_check_button_new_with_label (_("Play Along"));
+    gtk_widget_set_tooltip_markup (playalong_toggle, _( "Sets/Unsets Play Along playback."));
 	if (Denemo.project && Denemo.project->midi_destination & MIDIPLAYALONG)
-		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
-	gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
-    g_signal_connect_swapped (G_OBJECT (button), "toggled", G_CALLBACK (pb_playalong), get_playalong_button());
+		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (playalong_toggle), TRUE);
+	gtk_box_pack_start (GTK_BOX (hbox), playalong_toggle, FALSE, FALSE, 0);
+    g_signal_connect_swapped (G_OBJECT (playalong_toggle), "toggled", G_CALLBACK (pb_playalong), get_playalong_button());
 
 
 
