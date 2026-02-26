@@ -399,6 +399,7 @@ static gchar * get_error_point (gchar *bytes, gint *line, gint *col)
 void
 process_lilypond_errors (gchar * filename)
 {
+
   Denemo.printstatus->invalid = 0;
   gchar *logfile = g_strconcat (filename, ".log", NULL);
   gchar *epoint = NULL;
@@ -435,7 +436,9 @@ process_lilypond_errors (gchar * filename)
         {
           set_lily_error (line + 1, column);
         }
-      goto_lilypond_position (line + 1, column);
+       	//if playback view is visible do not reposition for errors
+	  if (!gtk_widget_get_visible (gtk_widget_get_toplevel (Denemo.playbackview)))
+		 goto_lilypond_position (line + 1, column);
       
       if (g_strrstr (epoint,"error:"))
 		Denemo.printstatus->invalid = 2;
@@ -745,18 +748,18 @@ create_pdf (gboolean part_only, gboolean all_movements)
 void
 create_svg (gboolean part_only, gboolean all_movements)
 {
-      if (Denemo.printstatus->printpid != GPID_NONE)
+    while (Denemo.printstatus->printpid != GPID_NONE)
     {
-      if (confirm (_("Already Typesetting"), _("Abandon this typeset?")))
+      if (confirm (_("Wait for Print View to refresh"), _("Ready?")))
         {
           if (Denemo.printstatus->printpid != GPID_NONE)        //It could have died while the user was making up their mind...
             kill_process (Denemo.printstatus->printpid);
           Denemo.printstatus->printpid = GPID_NONE;
+          stop_typeset_progress ();
         }
       else
         {
           warningdialog (_("Cancelled"));
-
           return;
         }
     }
