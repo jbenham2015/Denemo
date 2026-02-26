@@ -137,7 +137,7 @@ show_playback_view (void)
 	if (Denemo.project->midi_destination & MIDIPLAYALONG)
 		{
 			gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (playalong_toggle), TRUE);
-			Denemo.project->midi_destination ^= MIDIPLAYALONG;
+			Denemo.project->midi_destination |= MIDIPLAYALONG;
 		}
 	else
 		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (playalong_toggle), FALSE);
@@ -226,12 +226,20 @@ void highlight_playback_note (gint color)
 	gtk_widget_queue_draw (Denemo.playbackview);
 }
 //over-draw the evince widget with padding etc ...
+static gboolean needs_retypeset = FALSE;
 static gboolean
 overdraw_print (cairo_t * cr)
 {
   gint x, y;
   gdouble this, duration;
   gboolean drew_rectangle = FALSE;
+  if (needs_retypeset)
+	{
+			cairo_set_source_rgba (cr, 0.75, 0.55, 0.25, 0.8);
+			cairo_set_font_size (cr, 40.0);
+			cairo_move_to (cr, 1, 40);
+			cairo_show_text (cr, ("Choose \"All Parts\" or \"Current Part\" to re-typeset the Playback View"));
+	}
   if (Dragging)
     {   //g_print ("Dragging from %d %d to %d %d \n", RightButtonX, RightButtonY, DragX, DragY);
         if (RightButtonPressed)
@@ -514,6 +522,8 @@ static void compute_timings (gchar *base, GList *ids)
                     } //while events
                  //g_print ("Finished collecting timings");
                 fclose (fp);
+                stop_typeset_progress ();
+                needs_retypeset = FALSE;
             } //if events file
     else
         {
@@ -938,12 +948,17 @@ static void button_press (GtkWidget *event_box, GdkEventButton *event)
         return;
 
 
-    if (get_wysiwyg_info()->stage != TypesetForPlaybackView)
+    if ((get_wysiwyg_info()->stage != TypesetForPlaybackView) ||
+		(changecount != Denemo.project->movement->changecount) ||
+		(Denemo.project->movement->changecount != Denemo.project->movement->smfsync) || (Denemo.project->changecount != Denemo.project->lilysync))
        {
-            warningdialog (_("Use the Print View or re-typeset with All Parts or Current Part buttons"));
+		    typeset_current_movement ();
+            warningdialog (_("Wait for the Print View to update, then choose \"All Parts\" or \"Current Part\" from the Playback View and wait for that to re-typeset, then you can play,"));
+            needs_retypeset = TRUE;
+            gtk_widget_queue_draw (Denemo.playbackview);
             return;
        }
-
+	
     gint x = event->x;
     gint y = event->y;
     //g_print ("At %d %d\n", x, y);
@@ -1164,6 +1179,13 @@ static void button_release (GtkWidget *event_box, GdkEventButton *event)
 
      if ((changecount != Denemo.project->movement->changecount) || (Denemo.project->movement->changecount != Denemo.project->movement->smfsync))
         {
+		    if (Denemo.printstatus->printpid != GPID_NONE)
+				kill_process (Denemo.printstatus->printpid);
+			Denemo.printstatus->printpid = GPID_NONE;
+		    typeset_current_movement ();
+            warningdialog (_("Wait for the Print View to finish typesetting and then choose \"All Parts\" or \"Current Part\" from the Playback View"));
+			return;
+			
             static gboolean once = TRUE;
             exportmidi (NULL, Denemo.project->movement);
             //g_print ("Now d-changecount %d, d-smfsync %d\n", Denemo.project->movement->changecount, Denemo.project->movement->smfsync);
@@ -1242,6 +1264,12 @@ static void play_button (void)
 
 static void part_button (void)
 {
+	if (Denemo.project->changecount != Denemo.project->lilysync) 
+		{
+			typeset_current_movement();
+			warningdialog ("Wait for Print View to refresh then click again");
+			return;
+		}
     PartOnly = TRUE;
     if (Denemo.project->movement->smf)
         AllPartsTypeset = confirm ( _("MIDI Already Present"), _("Keep this music while typesetting current part?"));
@@ -1251,6 +1279,13 @@ static void part_button (void)
 }
 static void movement_button (void)
 {
+	if (Denemo.project->changecount != Denemo.project->lilysync) 
+		{
+			typeset_current_movement();
+			warningdialog ("Wait for Print View to refresh then click again");
+			return;
+		}
+	
     PartOnly = FALSE;
     gchar *command = get_script (PartOnly);
     call_out_to_guile (command);//this installs the temporary directives to typeset svg and then calls LilyPond
