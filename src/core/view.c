@@ -1390,6 +1390,8 @@ set_midi_in_status (void)
 void
 midi_in_adjust (gint value)
 {
+if ( Denemo.project->midi_destination == MIDIPLAYALONG)
+	pb_playalong (get_playalong_button ());
   if (value>0)
 	Denemo.keyboard_state = value;
   Denemo.keyboard_state_locked = value; //lock if set to listening or checking or recording
