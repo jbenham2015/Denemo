@@ -31,9 +31,9 @@ LangString UninstLogMissing ${LANG_ENGLISH} "${UninstLog} not found.$\r$\nCannot
 ${StrLoc}
 ${UnStrLoc}
 
-;;SetCompressor lzma  ; very slow
+SetCompressor /SOLID lzma  ; very slow
 ;;SetCompressor zlib
-SetCompressor bzip2  ;;
+;;SetCompressor bzip2  ;;
 
 Name "${PRETTY_NAME}"
 
