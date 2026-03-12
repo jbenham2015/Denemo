@@ -1,0 +1,21 @@
+gtk3 +quartz
+librsvg +quartz
+gtksourceview3 +quartz
+evince +quartz
+guile
+aubio
+portaudio
+fftw-3
+fluidsynth
+libsmf
+libsndfile
+libxml2
+portmidi
+rubberband
+gettext
+intltool
+autoconf
+automake
+libtool
+pkgconfig
+lilypond

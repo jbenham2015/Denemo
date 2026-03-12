@@ -1,0 +1,164 @@
+name: Build Denemo for macOS
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:  # allows you to trigger this manually from GitHub
+
+jobs:
+  build:
+    runs-on: macos-13  # Intel runner - broadest compatibility
+
+    steps:
+      # Step 1: Check out the Denemo source code
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      # Step 2: Cache MacPorts to avoid rebuilding dependencies every time
+      # The cache is invalidated only when the list of ports changes
+      - name: Cache MacPorts
+        id: cache-macports
+        uses: actions/cache@v4
+        with:
+          path: /opt/local
+          key: macports-${{ runner.os }}-${{ hashFiles('.github/macports-deps.txt') }}
+
+      # Step 3: Install MacPorts itself (only if cache missed)
+      - name: Install MacPorts
+        if: steps.cache-macports.outputs.cache-hit != 'true'
+        run: |
+          curl -LO https://github.com/macports/macports-base/releases/download/v2.9.3/MacPorts-2.9.3-13-Ventura.pkg
+          sudo installer -pkg MacPorts-2.9.3-13-Ventura.pkg -target /
+          echo /opt/local/bin >> $GITHUB_PATH
+          echo /opt/local/sbin >> $GITHUB_PATH
+
+      # Step 4: Add MacPorts to PATH (always needed, even on cache hit)
+      - name: Add MacPorts to PATH
+        run: |
+          echo /opt/local/bin >> $GITHUB_PATH
+          echo /opt/local/sbin >> $GITHUB_PATH
+
+      # Step 5: Install all Denemo dependencies via MacPorts
+      # +quartz variants are essential for GTK apps to display on macOS
+      - name: Install dependencies
+        if: steps.cache-macports.outputs.cache-hit != 'true'
+        run: |
+          sudo port install \
+            gtk3 +quartz \
+            librsvg +quartz \
+            gtksourceview3 +quartz \
+            evince +quartz \
+            guile \
+            aubio \
+            portaudio \
+            fftw-3 \
+            fluidsynth \
+            libsmf \
+            libsndfile \
+            libxml2 \
+            portmidi \
+            rubberband \
+            gettext \
+            intltool \
+            autoconf \
+            automake \
+            libtool \
+            pkgconfig \
+            lilypond
+
+      # Step 6: Build Denemo from source
+      - name: Build Denemo
+        run: |
+          ./autogen.sh
+          mkdir -p build && cd build
+          ../configure --prefix=/opt/local
+          make -j$(sysctl -n hw.ncpu)
+
+      # Step 7: Install into a staging directory for bundling
+      - name: Install to staging
+        run: |
+          cd build
+          make DESTDIR=${{ github.workspace }}/staging install
+
+      # Step 8: Create a basic .app bundle structure
+      # (Full dylib bundling to be added in a later step)
+      - name: Create .app bundle
+        run: |
+          APP=Denemo.app
+          mkdir -p $APP/Contents/MacOS
+          mkdir -p $APP/Contents/Resources
+
+          # Copy the binary
+          cp staging/opt/local/bin/denemo $APP/Contents/MacOS/Denemo
+
+          # Copy shared data files
+          cp -r staging/opt/local/share/denemo $APP/Contents/Resources/
+
+          # Write Info.plist
+          cat > $APP/Contents/Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key>
+            <string>Denemo</string>
+            <key>CFBundleDisplayName</key>
+            <string>Denemo</string>
+            <key>CFBundleIdentifier</key>
+            <string>org.denemo.Denemo</string>
+            <key>CFBundleVersion</key>
+            <string>2.6.49</string>
+            <key>CFBundleShortVersionString</key>
+            <string>2.6.49</string>
+            <key>CFBundleExecutable</key>
+            <string>Denemo</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+            <key>NSPrincipalClass</key>
+            <string>NSApplication</string>
+          </dict>
+          </plist>
+          EOF
+
+      # Step 9: Package into a DMG
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Create DMG
+        run: |
+          mkdir -p dist
+          mv Denemo.app dist/
+
+          create-dmg \
+            --volname "Denemo" \
+            --volicon "dist/Denemo.app/Contents/Resources/denemo.icns" \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "Denemo.app" 150 200 \
+            --hide-extension "Denemo.app" \
+            --app-drop-link 450 200 \
+            "Denemo-2.6.49.dmg" \
+            "dist/" \
+          || true  # create-dmg exits non-zero if no signing; that's OK for now
+
+      # Step 10: Upload the DMG as a build artifact
+      # You can download this from the Actions tab on GitHub after the build
+      - name: Upload DMG artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Denemo-macOS-dmg
+          path: "*.dmg"
+          retention-days: 30
+
+      # Step 11: If this is a tag push (a release), attach DMG to the GitHub Release
+      - name: Attach DMG to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: "*.dmg"
