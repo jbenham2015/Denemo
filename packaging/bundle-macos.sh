@@ -169,6 +169,16 @@ if [ -f "${LILYPOND_BIN}" ]; then
         -d "${APP_DIR}/Contents/libs/" \
         -p "@executable_path/../libs/"
 
+    # 2b. Ensure libgc symlink exists (bdw-gc installs as libgc.1.X.Y.dylib
+    # but lilypond references it as libgc.1.dylib)
+    GC_VERSIONED=$(ls "${APP_DIR}/Contents/libs/libgc.1."*.dylib 2>/dev/null | head -1)
+    if [ -n "${GC_VERSIONED}" ]; then
+        GC_NAME=$(basename "${GC_VERSIONED}")
+        ln -sf "${GC_NAME}" "${APP_DIR}/Contents/libs/libgc.1.dylib"
+        echo "  libgc symlink: libgc.1.dylib -> ${GC_NAME}"
+    else
+        echo "  WARNING: libgc not found after dylibbundler"
+    fi
     # 3. Lipo into universal
     X86_LILYPOND="/usr/local/bin/lilypond"
     if [ -f "${X86_LILYPOND}" ]; then
