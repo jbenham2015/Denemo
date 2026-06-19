@@ -41,9 +41,8 @@
 #include "command/measure.h"
 #ifdef __MACH__
 #include <mach-o/dyld.h>
-#endif
-#elif defined(__APPLE__)
 #include <CoreText/CoreText.h>
+#endif
 
 static void
 register_font_with_coretext (const char *path)
