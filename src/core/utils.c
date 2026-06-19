@@ -39,11 +39,12 @@
 #endif
 #include "audio/pitchentry.h"
 #include "command/measure.h"
-#ifdef __MACH__
+#ifdef __APPLE__
 #include <mach-o/dyld.h>
 #include <CoreText/CoreText.h>
 #endif
 
+#ifdef __APPLE__
 static void
 register_font_with_coretext (const char *path)
 {
@@ -1495,7 +1496,7 @@ get_system_data_dir ()
       g_free (rootdir);
 #else /* not G_OS_WIN32 */
 
-#ifdef __MACH__
+#ifdef __APPLE__
       {
         DENEMO_datadir = g_build_filename (get_prefix_dir (), "share", NULL);
         g_message ("OSX set data dir to %s", DENEMO_datadir);
@@ -1507,7 +1508,7 @@ get_system_data_dir ()
       DENEMO_datadir = gbr_find_pkg_data_dir (PKGDATADIR, PKGNAME);
 #endif //ENABLE_BINRELOC
 
-#endif //__MACH__
+#endif //__APPLE__
 #endif /* not G_OS_WIN32 */
       }
     g_print ("Denemo data expected in %s\n", DENEMO_datadir);
@@ -1521,7 +1522,7 @@ get_prefix_dir (void)
   gchar *prefix;
 #ifdef G_OS_WIN32
   prefix = g_win32_get_package_installation_directory (NULL, NULL);
-#elif defined __MACH__
+#elif defined __APPLE__
   prefix = g_build_filename (get_system_bin_dir (), "..", "Resources", NULL);
   g_message ("OSX set data prefix to %s", prefix);
 #else
@@ -1545,7 +1546,7 @@ get_system_bin_dir (void)
       g_free (rootdir);
 #else /* not G_OS_WIN32 */
 
-#ifdef __MACH__
+#ifdef __APPLE__
 
       {
         char path[1024];
@@ -1570,7 +1571,7 @@ get_system_bin_dir (void)
       DENEMO_bindir = gbr_find_bin_dir (BINDIR);
 #endif //ENABLE_BINRELOC
 
-#endif //__MACH__
+#endif //__APPLE__
 #endif /* not G_OS_WIN32 */
     }
   return DENEMO_bindir;
@@ -1588,7 +1589,7 @@ get_system_conf_dir ()
       confdir = g_build_filename (rootdir, "etc", "denemo", NULL);
       g_free (rootdir);
 #else // not G_OS_WIN32
-#ifdef __MACH__
+#ifdef __APPLE__
 
       {
         char path[1024];
@@ -1610,7 +1611,7 @@ get_system_conf_dir ()
       confdir = g_build_filename (gbr_find_etc_dir (SYSCONFDIR), "denemo", NULL);
 #endif //ENABLE_BINRELOC
 
-#endif //__MACH__
+#endif //__APPLE__
 #endif // not G_OS_WIN32
     }
   return confdir;
@@ -1628,7 +1629,7 @@ get_system_locale_dir ()
       localedir = g_build_filename (rootdir, "share", "locale", NULL);
       g_free (rootdir);
 #else /* not G_OS_WIN32 */
-#ifdef __MACH__
+#ifdef __APPLE__
       {
         localedir = g_build_filename (get_prefix_dir (), "share", "locale", NULL);
         g_message ("OSX set locale dir to %s", localedir);
@@ -3635,7 +3636,7 @@ get_executable_dir ()
 #ifdef G_OS_WIN32
       GetModuleFileNameA (NULL, path, MAX_PATH);
 
-#elif defined __MACH__
+#elif defined __APPLE__
       guint size = sizeof (path);
       _NSGetExecutablePath (path, &size);
 
