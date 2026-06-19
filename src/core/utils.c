@@ -1526,7 +1526,7 @@ get_system_bin_dir (void)
         gchar *bin = (gchar *) g_malloc (size);
         if (_NSGetExecutablePath (bin, &size) == 0)
           {
-            DENEMO_bindir = g_build_filename (bin, "..", NULL);
+	    DENEMO_bindir = g_path_get_dirname (bin);
             g_message ("Using bin path %s", DENEMO_bindir);
           }
         else
