@@ -284,8 +284,12 @@ echo "=== Guile bundle contents ==="
 du -sh "${RESOURCES}/share/guile/" 2>/dev/null
 du -sh "${RESOURCES}/lib/guile/"   2>/dev/null
 
-# ── Install launcher ─────────────────────────────────────────────────────────
-# ── Install launcher ─────────────────────────────────────────────────────────
+# ── Install Lilypond launcher ─────────────────────────────────────────────────────────
+mv "${APP_DIR}/Contents/MacOS/lilypond" \
+   "${APP_DIR}/Contents/MacOS/lilypond-bin"
+cp "${SCRIPT_DIR}/macos-lilypond-launcher.sh" "${APP_DIR}/Contents/MacOS/lilypond"
+chmod +x "${APP_DIR}/Contents/MacOS/lilypond"
+# ── Install Denemo launcher ─────────────────────────────────────────────────────────
 mv "${APP_DIR}/Contents/MacOS/denemo" \
    "${APP_DIR}/Contents/MacOS/denemo-bin"
 cp "${SCRIPT_DIR}/macos-launcher.sh" "${APP_DIR}/Contents/MacOS/denemo"
