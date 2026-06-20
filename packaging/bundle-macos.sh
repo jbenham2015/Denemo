@@ -318,6 +318,40 @@ dylibbundler \
 
 # Bundle Ghostscript (required by LilyPond for PDF output)
 GS_BIN=""
+if [ -n "${GS_BIN}" ]; then
+    echo "Bundling Ghostscript from ${GS_BIN}..."
+    cp "${GS_BIN}" "${APP_DIR}/Contents/MacOS/gs"
+    chmod +w "${APP_DIR}/Contents/MacOS/gs"
+
+    bundle_dylib_closure() {
+        local target="$1"
+        otool -L "${target}" | tail -n +2 | awk '{print $1}' | while read -r dep; do
+            case "${dep}" in
+                /usr/lib/*|/System/*|@executable_path/*|@loader_path/*|@rpath/*)
+                    continue
+                    ;;
+            esac
+            depname=$(basename "${dep}")
+            destlib="${APP_DIR}/Contents/libs/${depname}"
+            if [ ! -f "${destlib}" ]; then
+                echo "    copying dependency: ${depname}"
+                cp "${dep}" "${destlib}"
+                chmod +w "${destlib}"
+                install_name_tool -id "@executable_path/../libs/${depname}" "${destlib}"
+                bundle_dylib_closure "${destlib}"
+                codesign --force --sign - "${destlib}"
+            fi
+            install_name_tool -change "${dep}" "@executable_path/../libs/${depname}" "${target}"
+        done
+    }
+
+    bundle_dylib_closure "${APP_DIR}/Contents/MacOS/gs"
+    codesign --force --sign - "${APP_DIR}/Contents/MacOS/gs"
+    echo "Ghostscript bundled."
+else
+    echo "WARNING: gs not found on build machine — bundled app will fail PDF output at runtime!"
+fi
+
 if command -v gs > /dev/null 2>&1; then
     GS_BIN=$(command -v gs)
 elif [ -f "${HOMEBREW_PREFIX}/bin/gs" ]; then
