@@ -377,6 +377,13 @@ elif [ -n "${GS_BIN}" ]; then
     echo "WARNING: no x86_64 gs at ${GS_X86} — bundled gs will be arm64-only!"
 fi
 
+echo "=== Final dependency closure sweep ==="
+for f in "${APP_DIR}/Contents/libs/"*.dylib "${APP_DIR}/Contents/MacOS/"*; do
+    [ -f "$f" ] || continue
+    file "$f" | grep -q "Mach-O" || continue
+    bundle_dylib_closure "$f"
+done
+
 # ── Make bundled dylibs universal ────────────────────────────────────────────
 echo "=== Checking x86_64 fontconfig ==="
 find /usr/local -name "libfontconfig*" 2>/dev/null
