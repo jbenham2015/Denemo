@@ -317,7 +317,8 @@ dylibbundler \
     || true
 
 # Bundle Ghostscript (required by LilyPond for PDF output)
-GS_BIN=""
+GS_BIN="${HOMEBREW_PREFIX}/bin/gs"
+
 if [ -n "${GS_BIN}" ]; then
     echo "Bundling Ghostscript from ${GS_BIN}..."
     cp "${GS_BIN}" "${APP_DIR}/Contents/MacOS/gs"
