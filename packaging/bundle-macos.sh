@@ -326,13 +326,14 @@ if [ -n "${GS_BIN}" ]; then
 
     bundle_dylib_closure() {
     local target="$1"
-    otool -L "${target}" | tail -n +2 | awk '{print $1}' | while read -r dep; do
+    otool -L "${target}" | grep '^[[:space:]]' | awk '{print $1}' | while read -r dep; do
         case "${dep}" in
             /usr/lib/*|/System/*|@executable_path/*|@loader_path/*|@rpath/*)
                 continue
                 ;;
         esac
         depname=$(basename "${dep}")
+        [ "${depname}" = "$(basename "${target}")" ] && continue
         destlib="${APP_DIR}/Contents/libs/${depname}"
         if [ ! -f "${destlib}" ]; then
             echo "    copying dependency: ${depname}"
