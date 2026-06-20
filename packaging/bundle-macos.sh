@@ -469,10 +469,7 @@ if [ -d "${HOMEBREW_PREFIX}/etc/fonts" ]; then
           "${APP_DIR}/Contents/Resources/etc/fonts/"
 fi
 # Add system font fallback to fontconfig
-cat >> "${APP_DIR}/Contents/Resources/etc/fonts/fonts.conf" << 'FONTCONF'
-<dir>/Library/Fonts</dir>
-<dir>/System/Library/Fonts</dir>
-FONTCONF
+cp "${SRC_DIR}/macos-fonts.conf" "${APP_DIR}/Contents/Resources/etc/fonts/fonts.conf"
 
 # Bundle Denemo's own fonts (denemo.ttf etc)
 if [ -d "${HOMEBREW_PREFIX}/share/fonts" ]; then
