@@ -352,11 +352,27 @@ if [ -n "${GS_BIN}" ]; then
 else
     echo "WARNING: gs not found on build machine — bundled app will fail PDF output at runtime!"
 fi
+# ── Make bundled gs universal (x86_64 + arm64) ───────────────────────────────
+GS_X86="/usr/local/bin/gs"
+if [ -n "${GS_BIN}" ] && [ -f "${GS_X86}" ]; then
+    echo "Found x86_64 gs at ${GS_X86}, building universal gs..."
+    cp "${GS_X86}" "${APP_DIR}/Contents/MacOS/gs.x86_64"
+    chmod +w "${APP_DIR}/Contents/MacOS/gs.x86_64"
+    bundle_dylib_closure "${APP_DIR}/Contents/MacOS/gs.x86_64"
 
-if command -v gs > /dev/null 2>&1; then
-    GS_BIN=$(command -v gs)
-elif [ -f "${HOMEBREW_PREFIX}/bin/gs" ]; then
-    GS_BIN="${HOMEBREW_PREFIX}/bin/gs"
+    codesign --remove-signature "${APP_DIR}/Contents/MacOS/gs" 2>/dev/null || true
+    codesign --remove-signature "${APP_DIR}/Contents/MacOS/gs.x86_64" 2>/dev/null || true
+
+    lipo -create \
+        "${APP_DIR}/Contents/MacOS/gs" \
+        "${APP_DIR}/Contents/MacOS/gs.x86_64" \
+        -output "${APP_DIR}/Contents/MacOS/gs.universal"
+    mv "${APP_DIR}/Contents/MacOS/gs.universal" "${APP_DIR}/Contents/MacOS/gs"
+    rm -f "${APP_DIR}/Contents/MacOS/gs.x86_64"
+    codesign --force --sign - "${APP_DIR}/Contents/MacOS/gs"
+    echo "  gs is now universal: $(lipo -info "${APP_DIR}/Contents/MacOS/gs")"
+elif [ -n "${GS_BIN}" ]; then
+    echo "WARNING: no x86_64 gs at ${GS_X86} — bundled gs will be arm64-only!"
 fi
 
 # ── Make bundled dylibs universal ────────────────────────────────────────────
