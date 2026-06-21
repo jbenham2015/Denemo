@@ -384,6 +384,13 @@ for f in "${APP_DIR}/Contents/libs/"*.dylib "${APP_DIR}/Contents/MacOS/"*; do
     file "$f" | grep -q "Mach-O" || continue
     bundle_dylib_closure "$f"
 done
+echo "=== Post-sweep verification ==="
+echo "libtiff -> zstd:"
+otool -L "${APP_DIR}/Contents/libs/libtiff.6.dylib" | grep -i zstd
+echo "libarchive -> lzma:"
+otool -L "${APP_DIR}/Contents/libs/libarchive.13.dylib" | grep -i lzma
+echo "libleptonica -> png:"
+otool -L "${APP_DIR}/Contents/libs/libleptonica.6.dylib" | grep -i png
 
 # ── Make bundled dylibs universal ────────────────────────────────────────────
 echo "=== Checking x86_64 fontconfig ==="
