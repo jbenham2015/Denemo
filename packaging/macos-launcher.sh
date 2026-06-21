@@ -55,5 +55,5 @@ export LILYPOND_DATADIR="${RESOURCES}/share/lilypond/${LILY_VER}"
 
 # ── PATH - MacOS dir first so lilypond and gs are found before system copies ──
 export PATH="${BUNDLE}/Contents/MacOS:${PATH}"
-
+export G_MESSAGES_DEBUG=all
 exec "${BUNDLE}/Contents/MacOS/denemo-bin" "$@" 2>/dev/null

@@ -16,5 +16,5 @@ export GUILE_SYSTEM_EXTENSIONS_PATH="${RESOURCES}/lib/guile/${GUILE_VER}/extensi
 export LILYPOND_DATADIR="${RESOURCES}/share/lilypond/${LILY_VER}"
 export FONTCONFIG_PATH="${RESOURCES}/etc/fonts"
 export FONTCONFIG_FILE="${RESOURCES}/etc/fonts/fonts.conf"
-
+export G_MESSAGES_DEBUG=all
 exec "${BUNDLE}/Contents/MacOS/lilypond-bin" "$@"
