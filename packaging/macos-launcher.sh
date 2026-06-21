@@ -25,7 +25,7 @@ export PANGO_LIBDIR="${LIBS}"
 # ── Fontconfig ────────────────────────────────────────────────────────────────
 export FONTCONFIG_PATH="${RESOURCES}/etc/fonts"
 export FONTCONFIG_FILE="${RESOURCES}/etc/fonts/fonts.conf"
-export FC_DEBUG=0
+export FC_DEBUG=4
 
 # ── Guile ─────────────────────────────────────────────────────────────────────
 GUILE_VER="3.0"
