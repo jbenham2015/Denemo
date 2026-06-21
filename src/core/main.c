@@ -289,7 +289,6 @@ init_environment()
 
   g_free (cache_dir);
 
-#endif
 
   CFBundleRef bundle = CFBundleGetMainBundle();
   CFStringRef bundleID = CFBundleGetIdentifier(bundle);
@@ -299,6 +298,8 @@ init_environment()
                                       "fontconfig", NULL);
   g_mkdir_with_parents (cache_dir, 0755);
   g_free (cache_dir);
+
+#endif
 
   gchar *fc_path = g_build_filename (prefix, "etc", "fonts", NULL);
   g_setenv ("FONTCONFIG_PATH", fc_path, TRUE);
