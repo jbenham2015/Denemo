@@ -256,6 +256,50 @@ init_environment()
   g_setenv ("GTK_PREFIX", prefix, TRUE);
   g_info ("Setting GTK_PREFIX=%s\n", prefix);
 
+#ifdef __APPLE__
+  //Create a font cache. This must be in a place we have write permission
+  CFBundleRef bundle = CFBundleGetMainBundle();
+  if (!bundle)
+    {
+      g_warning ("Could not get main bundle");
+      return;
+    }
+
+  CFStringRef bundleID = CFBundleGetIdentifier (bundle);
+  if (!bundleID)
+    {
+      g_warning ("Could not get bundle identifier");
+      return;
+    }
+
+  char bundle_id_cstr[256];
+  if (!CFStringGetCString (bundleID, bundle_id_cstr, sizeof (bundle_id_cstr), kCFStringEncodingUTF8))
+    {
+      g_warning ("Could not convert bundle ID to C string");
+      return;
+    }
+
+  gchar *cache_dir = g_build_filename (g_get_home_dir (),
+                                      "Library", "Caches",
+                                      bundle_id_cstr,
+                                      "fontconfig", NULL);
+
+  if (!g_mkdir_with_parents (cache_dir, 0755))
+    g_warning ("Failed to create cache dir: %s (%s)", cache_dir, strerror (errno));
+
+  g_free (cache_dir);
+
+#endif
+
+  CFBundleRef bundle = CFBundleGetMainBundle();
+  CFStringRef bundleID = CFBundleGetIdentifier(bundle);
+  gchar *cache_dir = g_build_filename (g_get_home_dir (),
+                                      "Library", "Caches",
+                                      bundleID,
+                                      "fontconfig", NULL);
+  g_mkdir_with_parents (cache_dir, 0755);
+  g_free (cache_dir);
+
   gchar *fc_path = g_build_filename (prefix, "etc", "fonts", NULL);
   g_setenv ("FONTCONFIG_PATH", fc_path, TRUE);
   g_info ("Setting FONTCONFIG_PATH=%s\n", fc_path);
