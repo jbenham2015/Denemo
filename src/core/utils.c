@@ -1665,11 +1665,11 @@ get_system_font_dir ()
 #else
       gchar *prefix = g_build_filename (get_prefix_dir (), NULL);
 #endif
-      fontdir = g_build_filename (prefix, "share", "fonts", "truetype", "denemo", NULL);
-      g_warning("Attempting to add font dir: %s", fontpath);
+      fontdir= g_build_filename (prefix, "share", "fonts", "truetype", "denemo", NULL);
+      g_warning("Attempting to add font dir: %s", fontdir);
       struct stat st;
-      if (stat(fontpath, &st) != 0)
-      g_warning("Path does not exist: %s (%s)", fontpath, strerror(errno));
+      if (stat(fontdir, &st) != 0)
+      g_warning("Path does not exist: %s (%s)", fontdir, strerror(errno));
       PangoFontMap *map = pango_cairo_font_map_get_default();
       g_warning("Font map type: %s", G_OBJECT_TYPE_NAME(map));
     }
