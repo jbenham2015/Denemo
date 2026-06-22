@@ -41,6 +41,9 @@
 #include "core/exportxml.h"
 #include "core/utils.h"
 #include "core/keyboard.h"
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#endif
 
 struct DenemoRoot Denemo;
 
