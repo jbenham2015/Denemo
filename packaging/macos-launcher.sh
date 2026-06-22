@@ -23,9 +23,11 @@ export GTK_PATH="${RESOURCES}/lib/gtk-3.0"
 export PANGO_LIBDIR="${LIBS}"
 
 # ── Fontconfig ────────────────────────────────────────────────────────────────
-export FONTCONFIG_PATH="${RESOURCES}/etc/fonts"
 export FONTCONFIG_FILE="${RESOURCES}/etc/fonts/fonts.conf"
-export FC_DEBUG=4
+#only enable when explicitly requested
+if [ "${DENEMO_DEBUG:-0}" = "1"]; then
+	export FC_DEBUG=4
+fi
 
 # ── Guile ─────────────────────────────────────────────────────────────────────
 GUILE_VER="3.0"
