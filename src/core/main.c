@@ -324,7 +324,6 @@ init_environment()
 
   append_to_path ("GUILE_LOAD_PATH", get_system_data_dir (), NULL);
 
-#else
   add_font_directory (g_build_filename (get_system_data_dir (), "fonts", NULL));
 
   GList* dirs = NULL;
