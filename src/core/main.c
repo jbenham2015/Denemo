@@ -293,16 +293,6 @@ init_environment()
 
   g_free (cache_dir);
 
-
-  CFBundleRef bundle = CFBundleGetMainBundle();
-  CFStringRef bundleID = CFBundleGetIdentifier(bundle);
-  gchar *cache_dir = g_build_filename (g_get_home_dir (),
-                                      "Library", "Caches",
-                                      bundleID,
-                                      "fontconfig", NULL);
-  g_mkdir_with_parents (cache_dir, 0755);
-  g_free (cache_dir);
-
 #endif //the following is shared init
 
   gchar *fc_path = g_build_filename (prefix, "etc", "fonts", NULL);
