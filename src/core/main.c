@@ -256,6 +256,7 @@ init_environment()
   g_setenv ("GTK_PREFIX", prefix, TRUE);
   g_info ("Setting GTK_PREFIX=%s\n", prefix);
 
+#endif //end of windows only init
 #ifdef __APPLE__
   //Create a font cache. This must be in a place we have write permission
   CFBundleRef bundle = CFBundleGetMainBundle();
@@ -299,7 +300,7 @@ init_environment()
   g_mkdir_with_parents (cache_dir, 0755);
   g_free (cache_dir);
 
-#endif
+#endif //the following is shared init
 
   gchar *fc_path = g_build_filename (prefix, "etc", "fonts", NULL);
   g_setenv ("FONTCONFIG_PATH", fc_path, TRUE);
@@ -336,7 +337,6 @@ init_environment()
                   g_build_filename (data_dir, "denemo-modules", NULL),
                   NULL);
 
-#endif /* end of else not windows */
   g_setenv ("LILYPOND_VERBOSE", "1", FALSE);
 
   gchar *fontpath = NULL;
