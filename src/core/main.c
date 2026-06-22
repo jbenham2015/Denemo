@@ -351,6 +351,7 @@ init_environment()
   g_free(fontpath);
 
   g_setenv ("LYEDITOR", "denemoclient %(line)s %(column)s", FALSE);
+#endif
 }
 
 
