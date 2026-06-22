@@ -292,9 +292,7 @@ init_environment()
     g_warning ("Failed to create cache dir: %s (%s)", cache_dir, strerror (errno));
 
   g_free (cache_dir);
-
-#endif //the following is shared init
-
+  gchar *prefix = g_build_filename (get_system_bin_dir(), "..", NULL);  
   gchar *fc_path = g_build_filename (prefix, "etc", "fonts", NULL);
   g_setenv ("FONTCONFIG_PATH", fc_path, TRUE);
   g_info ("Setting FONTCONFIG_PATH=%s\n", fc_path);
@@ -302,8 +300,7 @@ init_environment()
   g_setenv ("FONTCONFIG_FILE", fc_file, TRUE);
   g_info ("Setting FONTCONFIG_FILE=%s\n", fc_file);
 
-
-  //gchar *program_files = g_getenv ("PROGRAMFILES");
+  
   gchar *path = g_getenv ("PATH");
   gchar *lilypond_path = g_build_filename (prefix, "bin", NULL);
   gchar *lib_path = g_build_filename (prefix, "lib", NULL);
