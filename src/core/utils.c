@@ -46,25 +46,25 @@
 
 #ifdef __APPLE__
 static void
-register_font_with_coretext (const char *path)
+register_dir_with_coretext (const char *path)
 {
-  CFURLRef fontURL = CFURLCreateFromFileSystemRepresentation (
+  CFURLRef url = CFURLCreateFromFileSystemRepresentation (
+      kCFAllocatorDefault, (const UInt8 *) path, strlen (path), true);
+  CFErrorRef error = NULL;
+  if (!CTFontManagerRegisterFontsForURL (url, kCTFontManagerScopeProcess, &error))
+    log_coretext_error (path, error);
+  CFRelease (url);
+}
+
+static void
+register_file_with_coretext (const char *path)
+{
+  CFURLRef url = CFURLCreateFromFileSystemRepresentation (
       kCFAllocatorDefault, (const UInt8 *) path, strlen (path), false);
   CFErrorRef error = NULL;
-
-  if (!CTFontManagerRegisterFontsForURL (fontURL, kCTFontManagerScopeProcess, &error))
-    {
-      if (error)
-        {
-          CFStringRef desc = CFErrorCopyDescription (error);
-          g_warning ("Failed to add font %s: %s", path,
-                     CFStringGetCStringPtr (desc, kCFStringEncodingUTF8));
-          CFRelease (desc);
-          CFRelease (error);
-        }
-    }
-
-  CFRelease (fontURL);
+  if (!CTFontManagerRegisterFontsForURL (url, kCTFontManagerScopeProcess, &error))
+    log_coretext_error (path, error);
+  CFRelease (url);
 }
 #endif
 

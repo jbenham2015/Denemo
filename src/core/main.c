@@ -205,8 +205,6 @@ process_command_line (int argc, char **argv, gboolean gtkstatus)
   return filenames;
 }
 
-
-
 static void
 init_environment()
 {
@@ -262,6 +260,7 @@ init_environment()
 #endif //end of windows only init
 #ifdef __APPLE__
   //Create a font cache. This must be in a place we have write permission
+
   CFBundleRef bundle = CFBundleGetMainBundle();
   if (!bundle)
     {
@@ -292,15 +291,7 @@ init_environment()
     g_warning ("Failed to create cache dir: %s (%s)", cache_dir, strerror (errno));
 
   g_free (cache_dir);
-  gchar *prefix = g_build_filename (get_system_bin_dir(), "..", NULL);  
-  gchar *fc_path = g_build_filename (prefix, "etc", "fonts", NULL);
-  g_setenv ("FONTCONFIG_PATH", fc_path, TRUE);
-  g_info ("Setting FONTCONFIG_PATH=%s\n", fc_path);
-  gchar *fc_file = g_build_filename (fc_path, "fonts.conf", NULL);
-  g_setenv ("FONTCONFIG_FILE", fc_file, TRUE);
-  g_info ("Setting FONTCONFIG_FILE=%s\n", fc_file);
-
-  
+  gchar *prefix = g_build_filename (get_system_bin_dir(), "..", NULL);
   gchar *path = g_getenv ("PATH");
   gchar *lilypond_path = g_build_filename (prefix, "bin", NULL);
   gchar *lib_path = g_build_filename (prefix, "lib", NULL);
