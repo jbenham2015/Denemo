@@ -46,6 +46,24 @@
 
 #ifdef __APPLE__
 static void
+log_coretext_error (const char *path, CFErrorRef error)
+{
+  if (error)
+    {
+      CFStringRef error_description = CFErrorCopyDescription (error);
+      const char *error_str = CFStringGetCStringPtr (error_description, kCFStringEncodingUTF8);
+      if (error_str)
+        g_warning ("CoreText error registering font %s: %s", path, error_str);
+      else
+        g_warning ("CoreText error registering font %s", path);
+      CFRelease (error_description);
+      CFRelease (error);
+    }
+}
+#endif
+
+#ifdef __APPLE__
+static void
 register_dir_with_coretext (const char *path)
 {
   CFURLRef url = CFURLCreateFromFileSystemRepresentation (
