@@ -25,7 +25,7 @@ export PANGO_LIBDIR="${LIBS}"
 # ── Fontconfig ────────────────────────────────────────────────────────────────
 export FONTCONFIG_FILE="${RESOURCES}/etc/fonts/fonts.conf"
 #only enable when explicitly requested
-if [ "${DENEMO_DEBUG:-0}" = "1"]; then
+if [ "${DENEMO_DEBUG:-0}" = "1" ]; then
 	export FC_DEBUG=4
 fi
 
