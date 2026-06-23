@@ -64,16 +64,61 @@ log_coretext_error (const char *path, CFErrorRef error)
 
 #ifdef __APPLE__
 static void
-register_dir_with_coretext (const char *path)
+register_font_file_with_coretext (const char *path)
 {
   CFURLRef url = CFURLCreateFromFileSystemRepresentation (
-      kCFAllocatorDefault, (const UInt8 *) path, strlen (path), true);
+      kCFAllocatorDefault, (const UInt8 *) path, strlen (path), false);
   CFErrorRef error = NULL;
   if (!CTFontManagerRegisterFontsForURL (url, kCTFontManagerScopeProcess, &error))
-    log_coretext_error (path, error);
+    {
+      if (error)
+        {
+          CFStringRef desc = CFErrorCopyDescription (error);
+          char errbuf[512];
+          CFStringGetCString (desc, errbuf, sizeof (errbuf), kCFStringEncodingUTF8);
+          g_warning ("CoreText error registering font %s: %s", path, errbuf);
+          CFRelease (desc);
+          CFRelease (error);
+        }
+    }
   CFRelease (url);
 }
 
+static void
+register_dir_with_coretext (const char *dirpath)
+{
+  GDir *dir = g_dir_open (dirpath, 0, NULL);
+  if (!dir)
+    {
+      g_warning ("CoreText: could not open font dir %s", dirpath);
+      return;
+    }
+
+  const gchar *name;
+  while ((name = g_dir_read_name (dir)) != NULL)
+    {
+      gchar *fullpath = g_build_filename (dirpath, name, NULL);
+
+      if (g_file_test (fullpath, G_FILE_TEST_IS_DIR))
+        {
+          register_dir_with_coretext (fullpath);   /* recurse */
+        }
+      else if (g_str_has_suffix (name, ".ttf") ||
+               g_str_has_suffix (name, ".otf") ||
+               g_str_has_suffix (name, ".TTF") ||
+               g_str_has_suffix (name, ".OTF"))
+        {
+          register_font_file_with_coretext (fullpath);
+        }
+
+      g_free (fullpath);
+    }
+
+  g_dir_close (dir);
+}
+#endif
+
+#ifdef __APPLE__
 static void
 register_file_with_coretext (const char *path)
 {
