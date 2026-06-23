@@ -306,6 +306,38 @@ init_environment()
   append_to_path ("GUILE_LOAD_PATH", get_system_data_dir (), NULL);
 
   add_font_directory (g_build_filename (get_system_data_dir (), "fonts", NULL));
+  /* Temporary debug - remove after fixing */
+  PangoFontMap *map = pango_cairo_font_map_get_default ();
+  PangoFontFamily **families;
+  int n_families;
+  pango_font_map_list_families (map, &families, &n_families);
+  g_warning ("=== Pango font families (%d total) ===", n_families);
+  for (int i = 0; i < n_families; i++)
+    {
+      const char *name = pango_font_family_get_name (families[i]);
+      if (g_ascii_strcasecmp (name, "denemo") == 0 ||
+        g_ascii_strcasecmp (name, "feta26") == 0 ||
+        g_ascii_strcasecmp (name, "emmentaler") == 0)
+        g_warning ("  FOUND: %s", name);
+      }
+    g_free (families);
+
+  /* Also try to explicitly load the font and see what happens */
+  PangoFontDescription *desc = pango_font_description_from_string ("Denemo 12");
+  PangoContext *ctx = pango_font_map_create_context (map);
+  PangoFont *font = pango_context_load_font (ctx, desc);
+  if (font)
+    {
+      PangoFontDescription *actual = pango_font_describe (font);
+      g_warning ("Requested 'Denemo 12', got: %s",
+               pango_font_description_to_string (actual));
+      pango_font_description_free (actual);
+      g_object_unref (font);
+    }
+  else
+    g_warning ("Pango could not load 'Denemo 12' at all");
+    pango_font_description_free (desc);
+    g_object_unref (ctx);
 
   GList* dirs = NULL;
   dirs = g_list_append(dirs, g_build_filename (PACKAGE_SOURCE_DIR, COMMANDS_DIR, NULL));
