@@ -266,50 +266,6 @@ init_environment()
 #endif //end of windows only init
 #ifdef __APPLE__
 /* ── Font debug block - remove after fixing ───────────────────── */
-  {
-    PangoFontMap *map = pango_cairo_font_map_get_default ();
-    PangoFontFamily **families;
-    int n_families;
-    pango_font_map_list_families (map, &families, &n_families);
-    g_warning ("Pango font families: %d total", n_families);
-    for (int i = 0; i < n_families; i++)
-      if (g_ascii_strcasecmp (pango_font_family_get_name (families[i]), "denemo") == 0)
-        g_warning ("  FOUND Denemo in Pango map");
-    g_free (families);
-
-    g_warning ("Font map type: %s", G_OBJECT_TYPE_NAME (map));
-
-    PangoFontDescription *pdesc = pango_font_description_from_string ("Denemo 12");
-    PangoContext *ctx = pango_font_map_create_context (map);
-    PangoFont *pfont = pango_context_load_font (ctx, pdesc);
-    if (pfont)
-      {
-        PangoFontDescription *actual = pango_font_describe (pfont);
-        g_warning ("Requested 'Denemo 12', got: %s",
-                   pango_font_description_to_string (actual));
-        pango_font_description_free (actual);
-        g_object_unref (pfont);
-      }
-    else
-      g_warning ("Pango could not load 'Denemo 12' at all");
-    pango_font_description_free (pdesc);
-    g_object_unref (ctx);
-
-#if defined(__APPLE__) && TARGET_OS_OSX
-    {
-      CTFontDescriptorRef ctdesc = CTFontDescriptorCreateWithNameAndSize (
-          CFSTR ("Denemo"), 12.0);
-      CTFontRef ctfont = CTFontCreateWithFontDescriptor (ctdesc, 12.0, NULL);
-      CFStringRef ctname = CTFontCopyFullName (ctfont);
-      char namebuf[256];
-      CFStringGetCString (ctname, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
-      g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
-      CFRelease (ctname);
-      CFRelease (ctfont);
-      CFRelease (ctdesc);
-    }
-#endif
-  }
 
 
   GList* dirs = NULL;
@@ -347,7 +303,45 @@ init_environment()
   g_free(fontpath);
 
   g_setenv ("LYEDITOR", "denemoclient %(line)s %(column)s", FALSE);
+#if defined(__APPLE__) && TARGET_OS_OSX
+      CTFontDescriptorRef ctdesc = CTFontDescriptorCreateWithNameAndSize (
+          CFSTR ("Denemo"), 12.0);
+      CTFontRef ctfont = CTFontCreateWithFontDescriptor (ctdesc, 12.0, NULL);
+      CFStringRef ctname = CTFontCopyFullName (ctfont);
+      char namebuf[256];
+      CFStringGetCString (ctname, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
+      g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
+      CFRelease (ctname);
+      CFRelease (ctfont);
+      CFRelease (ctdesc);
 #endif
+    PangoFontMap *map = pango_cairo_font_map_get_default ();
+    PangoFontFamily **families;
+    int n_families;
+    pango_font_map_list_families (map, &families, &n_families);
+    g_warning ("Pango font families: %d total", n_families);
+    for (int i = 0; i < n_families; i++)
+      if (g_ascii_strcasecmp (pango_font_family_get_name (families[i]), "denemo") == 0)
+        g_warning ("  FOUND Denemo in Pango map");
+    g_free (families);
+
+    g_warning ("Font map type: %s", G_OBJECT_TYPE_NAME (map));
+
+    PangoFontDescription *pdesc = pango_font_description_from_string ("Denemo 12");
+    PangoContext *ctx = pango_font_map_create_context (map);
+    PangoFont *pfont = pango_context_load_font (ctx, pdesc);
+    if (pfont)
+      {
+        PangoFontDescription *actual = pango_font_describe (pfont);
+        g_warning ("Requested 'Denemo 12', got: %s",
+                   pango_font_description_to_string (actual));
+        pango_font_description_free (actual);
+        g_object_unref (pfont);
+      }
+    else
+      g_warning ("Pango could not load 'Denemo 12' at all");
+    pango_font_description_free (pdesc);
+    g_object_unref (ctx);
 }
 
 
