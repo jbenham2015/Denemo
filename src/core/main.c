@@ -44,7 +44,12 @@
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif
-
+#ifdef __APPLE__
+#include <pango/pangocairo.h>
+#ifdef HAVE_PANGO_FC
+#include <pango/pangofc-fontmap.h>
+#endif
+#endif
 struct DenemoRoot Denemo;
 
 #ifdef HAVE_SIGCHLD
@@ -338,6 +343,19 @@ init_environment()
     pango_font_description_free (desc);
     g_object_unref (ctx);
 
+#if defined(__APPLE__) && TARGET_OS_OSX
+  /* After register_dir_with_coretext call */
+  CTFontDescriptorRef desc = CTFontDescriptorCreateWithNameAndSize (
+      CFSTR("Denemo"), 12.0);
+  CTFontRef font = CTFontCreateWithFontDescriptor (desc, 12.0, NULL);
+  CFStringRef name = CTFontCopyFullName (font);
+  char namebuf[256];
+  CFStringGetCString (name, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
+  g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
+  CFRelease (name);
+  CFRelease (font);
+  CFRelease (desc);
+#endif
   GList* dirs = NULL;
   dirs = g_list_append(dirs, g_build_filename (PACKAGE_SOURCE_DIR, COMMANDS_DIR, NULL));
   dirs = g_list_append(dirs, g_build_filename (get_system_data_dir (), COMMANDS_DIR, NULL));
