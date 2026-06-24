@@ -265,155 +265,53 @@ init_environment()
 
 #endif //end of windows only init
 #ifdef __APPLE__
-  //Create a font cache. This must be in a place we have write permission
-
-  CFBundleRef bundle = CFBundleGetMainBundle();
-  if (!bundle)
-    {
-      g_warning ("Could not get main bundle");
-      return;
-    }
-
-  CFStringRef bundleID = CFBundleGetIdentifier (bundle);
-  if (!bundleID)
-    {
-      g_warning ("Could not get bundle identifier");
-      return;
-    }
-
-  char bundle_id_cstr[256];
-  if (!CFStringGetCString (bundleID, bundle_id_cstr, sizeof (bundle_id_cstr), kCFStringEncodingUTF8))
-    {
-      g_warning ("Could not convert bundle ID to C string");
-      return;
-    }
-
-  gchar *cache_dir = g_build_filename (g_get_home_dir (),
-                                      "Library", "Caches",
-                                      bundle_id_cstr,
-                                      "fontconfig", NULL);
-
-  if (!g_mkdir_with_parents (cache_dir, 0755))
-    g_warning ("Failed to create cache dir: %s (%s)", cache_dir, strerror (errno));
-
-  g_free (cache_dir);
-  gchar *prefix = g_build_filename (get_system_bin_dir(), "..", NULL);
-  gchar *path = g_getenv ("PATH");
-  gchar *lilypond_path = g_build_filename (prefix, "bin", NULL);
-  gchar *lib_path = g_build_filename (prefix, "lib", NULL);
-  path = g_strconcat (path, ";", lilypond_path, ";", lib_path, NULL);
-
-  g_setenv ("PATH", path, TRUE);
-  g_info ("PATH set to %s\n", path);
-  gchar *lilypond_data_path = g_build_filename (prefix, "lilypond", "share", "lilypond", "2.26.0", NULL);
-  g_setenv ("LILYPOND_DATA_PATH", lilypond_data_path, FALSE);
-  g_info ("LILYPOND_DATA_PATH will be %s if not already set", lilypond_data_path);
-
-  append_to_path ("GUILE_LOAD_PATH", get_system_data_dir (), NULL);
-
-  g_warning ("BEFORE add_font_directory: calling with %s", get_system_font_dir ());
-  add_font_directory ((gchar *) get_system_font_dir ());
-  g_warning ("AFTER add_font_directory: checking Pango families");
-
-  PangoFontMap *map = pango_cairo_font_map_get_default ();
-  PangoFontFamily **families;
-  int n_families;
-  pango_font_map_list_families (map, &families, &n_families);
-  g_warning ("Pango font families after add: %d total", n_families);
-  for (int i = 0; i < n_families; i++)
-    if (g_ascii_strcasecmp (pango_font_family_get_name (families[i]), "denemo") == 0)
-      g_warning ("  FOUND Denemo in Pango map");
-  g_free (families);
-
-#ifdef __APPLE__
-  #if defined(__APPLE__) && TARGET_OS_OSX
-  /* Try to explicitly load the font with Pango */
+/* ── Font debug block - remove after fixing ───────────────────── */
   {
-    PangoFontDescription *desc = pango_font_description_from_string ("Denemo 12");
-    PangoContext *ctx = pango_font_map_create_context (map);
+    PangoFontMap *map = pango_cairo_font_map_get_default ();
+    PangoFontFamily **families;
+    int n_families;
+    pango_font_map_list_families (map, &families, &n_families);
+    g_warning ("Pango font families: %d total", n_families);
+    for (int i = 0; i < n_families; i++)
+      if (g_ascii_strcasecmp (pango_font_family_get_name (families[i]), "denemo") == 0)
+        g_warning ("  FOUND Denemo in Pango map");
+    g_free (families);
+
     g_warning ("Font map type: %s", G_OBJECT_TYPE_NAME (map));
-#ifdef HAVE_PANGO_FC
-    g_warning ("Is FC font map: %s", PANGO_IS_FC_FONT_MAP (map) ? "YES" : "NO");
-#endif
-    PangoFont *font = pango_context_load_font (ctx, desc);
-    if (font)
+
+    PangoFontDescription *pdesc = pango_font_description_from_string ("Denemo 12");
+    PangoContext *ctx = pango_font_map_create_context (map);
+    PangoFont *pfont = pango_context_load_font (ctx, pdesc);
+    if (pfont)
       {
-        PangoFontDescription *actual = pango_font_describe (font);
+        PangoFontDescription *actual = pango_font_describe (pfont);
         g_warning ("Requested 'Denemo 12', got: %s",
-                 pango_font_description_to_string (actual));
+                   pango_font_description_to_string (actual));
         pango_font_description_free (actual);
-        g_object_unref (font);
+        g_object_unref (pfont);
       }
     else
       g_warning ("Pango could not load 'Denemo 12' at all");
-    pango_font_description_free (desc);
+    pango_font_description_free (pdesc);
     g_object_unref (ctx);
-  }
-
-  /* Try to explicitly load the font with CoreText */
-  {
-    CTFontDescriptorRef ctdesc = CTFontDescriptorCreateWithNameAndSize (
-        CFSTR("Denemo"), 12.0);
-    CTFontRef ctfont = CTFontCreateWithFontDescriptor (ctdesc, 12.0, NULL);
-    CFStringRef name = CTFontCopyFullName (ctfont);
-    char namebuf[256];
-    CFStringGetCString (name, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
-    g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
-    CFRelease (name);
-    CFRelease (ctfont);
-    CFRelease (ctdesc);
-  }
-#endif
-
-
-#ifdef __APPLE__
-  /* Try to explicitly load the font with CoreText */
-  {
-    CTFontDescriptorRef ctdesc = CTFontDescriptorCreateWithNameAndSize (
-        CFSTR("Denemo"), 12.0);
-    CTFontRef ctfont = CTFontCreateWithFontDescriptor (ctdesc, 12.0, NULL);
-    CFStringRef name = CTFontCopyFullName (ctfont);
-    char namebuf[256];
-    CFStringGetCString (name, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
-    g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
-    CFRelease (name);
-    CFRelease (ctfont);
-    CFRelease (ctdesc);
-  }
-
-  /* Also try to explicitly load the font and see what happens */
-  PangoFontDescription *desc = pango_font_description_from_string ("Denemo 12");
-  PangoContext *ctx = pango_font_map_create_context (map);
-  g_warning ("Font map type: %s", G_OBJECT_TYPE_NAME (map));
-  g_warning ("Is FC font map: %s", PANGO_IS_FC_FONT_MAP (map) ? "YES" : "NO");
-  PangoFont *font = pango_context_load_font (ctx, desc);
-  if (font)
-    {
-      PangoFontDescription *actual = pango_font_describe (font);
-      g_warning ("Requested 'Denemo 12', got: %s",
-               pango_font_description_to_string (actual));
-      pango_font_description_free (actual);
-      g_object_unref (font);
-    }
-  else
-    g_warning ("Pango could not load 'Denemo 12' at all");
-    pango_font_description_free (desc);
-    g_object_unref (ctx);
-#endif
 
 #if defined(__APPLE__) && TARGET_OS_OSX
-  /* After register_dir_with_coretext call */
-  CTFontDescriptorRef desc = CTFontDescriptorCreateWithNameAndSize (
-      CFSTR("Denemo"), 12.0);
-  CTFontRef font = CTFontCreateWithFontDescriptor (desc, 12.0, NULL);
-  CFStringRef name = CTFontCopyFullName (font);
-  char namebuf[256];
-  CFStringGetCString (name, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
-  g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
-  CFRelease (name);
-  CFRelease (font);
-  CFRelease (desc);
+    {
+      CTFontDescriptorRef ctdesc = CTFontDescriptorCreateWithNameAndSize (
+          CFSTR ("Denemo"), 12.0);
+      CTFontRef ctfont = CTFontCreateWithFontDescriptor (ctdesc, 12.0, NULL);
+      CFStringRef ctname = CTFontCopyFullName (ctfont);
+      char namebuf[256];
+      CFStringGetCString (ctname, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
+      g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
+      CFRelease (ctname);
+      CFRelease (ctfont);
+      CFRelease (ctdesc);
+    }
 #endif
+  }
+
+
   GList* dirs = NULL;
   dirs = g_list_append(dirs, g_build_filename (PACKAGE_SOURCE_DIR, COMMANDS_DIR, NULL));
   dirs = g_list_append(dirs, g_build_filename (get_system_data_dir (), COMMANDS_DIR, NULL));
