@@ -43,6 +43,7 @@
 #include "core/keyboard.h"
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
+#include <CoreText/CoreText.h>
 #endif
 #ifdef __APPLE__
 #include <pango/pangocairo.h>
