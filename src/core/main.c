@@ -303,17 +303,17 @@ init_environment()
   g_free(fontpath);
 
   g_setenv ("LYEDITOR", "denemoclient %(line)s %(column)s", FALSE);
-#if defined(__APPLE__) && TARGET_OS_OSX
-      CTFontDescriptorRef ctdesc = CTFontDescriptorCreateWithNameAndSize (
-          CFSTR ("Denemo"), 12.0);
-      CTFontRef ctfont = CTFontCreateWithFontDescriptor (ctdesc, 12.0, NULL);
-      CFStringRef ctname = CTFontCopyFullName (ctfont);
-      char namebuf[256];
-      CFStringGetCString (ctname, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
-      g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
-      CFRelease (ctname);
-      CFRelease (ctfont);
-      CFRelease (ctdesc);
+  
+  CTFontDescriptorRef ctdesc = CTFontDescriptorCreateWithNameAndSize (
+  	CFSTR ("Denemo"), 12.0);
+  CTFontRef ctfont = CTFontCreateWithFontDescriptor (ctdesc, 12.0, NULL);
+  CFStringRef ctname = CTFontCopyFullName (ctfont);
+  char namebuf[256];
+  CFStringGetCString (ctname, namebuf, sizeof (namebuf), kCFStringEncodingUTF8);
+  g_warning ("CoreText resolved 'Denemo' to: %s", namebuf);
+  CFRelease (ctname);
+  CFRelease (ctfont);
+  CFRelease (ctdesc);
 #endif
     PangoFontMap *map = pango_cairo_font_map_get_default ();
     PangoFontFamily **families;
