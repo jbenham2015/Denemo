@@ -322,6 +322,8 @@ init_environment()
   /* Also try to explicitly load the font and see what happens */
   PangoFontDescription *desc = pango_font_description_from_string ("Denemo 12");
   PangoContext *ctx = pango_font_map_create_context (map);
+  g_warning ("Font map type: %s", G_OBJECT_TYPE_NAME (map));
+  g_warning ("Is FC font map: %s", PANGO_IS_FC_FONT_MAP (map) ? "YES" : "NO");
   PangoFont *font = pango_context_load_font (ctx, desc);
   if (font)
     {
