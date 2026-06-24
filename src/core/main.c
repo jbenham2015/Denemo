@@ -305,22 +305,19 @@ init_environment()
 
   append_to_path ("GUILE_LOAD_PATH", get_system_data_dir (), NULL);
 
-  add_font_directory (g_build_filename (get_system_data_dir (), "fonts", NULL));
-  /* Temporary debug - remove after fixing */
+  g_warning ("BEFORE add_font_directory: calling with %s", get_system_font_dir ());
+  add_font_directory ((gchar *) get_system_font_dir ());
+  g_warning ("AFTER add_font_directory: checking Pango families");
+
   PangoFontMap *map = pango_cairo_font_map_get_default ();
   PangoFontFamily **families;
   int n_families;
   pango_font_map_list_families (map, &families, &n_families);
-  g_warning ("=== Pango font families (%d total) ===", n_families);
+  g_warning ("Pango font families after add: %d total", n_families);
   for (int i = 0; i < n_families; i++)
-    {
-      const char *name = pango_font_family_get_name (families[i]);
-      if (g_ascii_strcasecmp (name, "denemo") == 0 ||
-        g_ascii_strcasecmp (name, "feta26") == 0 ||
-        g_ascii_strcasecmp (name, "emmentaler") == 0)
-        g_warning ("  FOUND: %s", name);
-      }
-    g_free (families);
+    if (g_ascii_strcasecmp (pango_font_family_get_name (families[i]), "denemo") == 0)
+      g_warning ("  FOUND Denemo in Pango map");
+  g_free (families);
 
   /* Also try to explicitly load the font and see what happens */
   PangoFontDescription *desc = pango_font_description_from_string ("Denemo 12");
