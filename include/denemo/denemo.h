@@ -183,7 +183,7 @@ extern const gchar *Fluidsynth;
 #define UI_DIR         "ui"
 #define SOUNDFONTS_DIR "soundfonts"
 #define PIXMAPS_DIR    "pixmaps"
-#define FONTS_DIR      "fonts"
+#define FONTS_DIR 	"fonts/truetype/denemo"
 #define LOCALE_DIR     "po"
 
 
