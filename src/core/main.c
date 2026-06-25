@@ -292,7 +292,7 @@ init_environment()
   fontpath = find_denemo_file(DENEMO_DIR_FONTS,  "Denemo.ttf");
   g_warning ("DENEMO_DIR_FONTS resolves to: %s",
 		  find_denemo_file (DENEMO_DIR_FONTS, "") ?
-		  find_denemo_file (DENEMO_DIR_FONTS, "") : "NULL);
+		  find_denemo_file (DENEMO_DIR_FONTS, "") : "NULL");
 
   if(fontpath)
     add_font_file (fontpath);
