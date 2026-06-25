@@ -3778,7 +3778,6 @@ find_denemo_file (DenemoDirectory dir, gchar * filename)
   dirs = g_list_append (dirs, g_build_filename (get_executable_dir (), "..", get_local_dir (dir), NULL));
   dirs = g_list_append (dirs, g_build_filename (get_user_data_dir (TRUE), get_local_dir (dir), NULL));
   dirs = g_list_append (dirs, g_strdup (get_system_dir (dir)));
-  dirs = g_list_append (dirs, g_build_filename (get_executable_dir (), "..", "share", "fonts", "truetype", "denemo", NULL));
   return find_path_for_file (filename, dirs);
 }
 
