@@ -122,11 +122,47 @@ register_dir_with_coretext (const char *dirpath)
 static void
 register_file_with_coretext (const char *path)
 {
+  g_warning ("CoreText: attempting to register %s", path);
+
+  /* Check file actually exists first */
+  struct stat st;
+  if (stat (path, &st) != 0)
+    {
+      g_warning ("CoreText: file does not exist: %s (%s)", path, strerror (errno));
+      return;
+    }
+  g_warning ("CoreText: file exists, size=%lld bytes", (long long) st.st_size);
+
   CFURLRef url = CFURLCreateFromFileSystemRepresentation (
       kCFAllocatorDefault, (const UInt8 *) path, strlen (path), false);
+  if (!url)
+    {
+      g_warning ("CoreText: CFURLCreateFromFileSystemRepresentation returned NULL for %s", path);
+      return;
+    }
+
   CFErrorRef error = NULL;
-  if (!CTFontManagerRegisterFontsForURL (url, kCTFontManagerScopeProcess, &error))
-    log_coretext_error (path, error);
+  Boolean ok = CTFontManagerRegisterFontsForURL (url, kCTFontManagerScopeProcess, &error);
+  if (!ok)
+    {
+      if (error)
+        {
+          CFStringRef desc = CFErrorCopyDescription (error);
+          CFStringRef domain = CFErrorGetDomain (error);
+          char descbuf[512], dombuf[256];
+          CFStringGetCString (desc, descbuf, sizeof (descbuf), kCFStringEncodingUTF8);
+          CFStringGetCString (domain, dombuf, sizeof (dombuf), kCFStringEncodingUTF8);
+          g_warning ("CoreText: registration FAILED for %s\n  domain=%s code=%ld\n  desc=%s",
+                     path, dombuf, (long) CFErrorGetCode (error), descbuf);
+          CFRelease (desc);
+          CFRelease (error);
+        }
+      else
+        g_warning ("CoreText: registration FAILED for %s (no error info)", path);
+    }
+  else
+    g_warning ("CoreText: registration SUCCEEDED for %s", path);
+
   CFRelease (url);
 }
 #endif
