@@ -308,6 +308,8 @@ init_environment()
   g_free(fontpath);
 
   g_setenv ("LYEDITOR", "denemoclient %(line)s %(column)s", FALSE);
+  /* Force Pango to rebuild its CoreText font map so it sees newly registered fonts */
+  pango_cairo_font_map_set_default (NULL);
   
   CTFontDescriptorRef ctdesc = CTFontDescriptorCreateWithNameAndSize (
   	CFSTR ("Denemo"), 12.0);
