@@ -77,7 +77,7 @@
         (if (null? thecomments)
           (begin
             (d-DirectivePut-score-postfix "CriticalCommentary"
-              (string-append "\\pageBreak\n\\titledPiece \\markup \"" (scheme-escape Title)
+              (string-append "\\titledPiece \\markup \"" (scheme-escape Title)
               "\"\n\\markup {\\vspace #1  \\fill-line {\\postscript #\"-12 3 moveto 24 0 rlineto stroke\"}}\n\\markup {\\italic \\wordwrap-string #\""
                (scheme-escape Prolog) "\"}\n" )))
           (begin
