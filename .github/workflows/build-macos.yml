@@ -103,7 +103,16 @@ jobs:
         test -f /usr/local/opt/expat/lib/pkgconfig/expat.pc   && echo "expat OK"   || echo "ERROR: expat missing"
         test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
         test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
-
+    - name: find evince backend
+      run: |
+        find /usr/local /opt/homebrew ~/.brew -name "*.evince-backend" 2>/dev/null
+        find /usr/local /opt/homebrew ~/.brew -path "*/evince/*backends*" -type d 2>/dev/null
+        strings /usr/local/lib/libevdocument3.dylib 2>/dev/null | grep -i backend
+        strings /opt/homebrew/lib/libevdocument3.dylib 2>/dev/null | grep -i backend
+        grep -r "EV_BACKENDS" /usr/local/include/evince 2>/dev/null
+        grep -r "EV_BACKENDS" /opt/homebrew/include/evince 2>/dev/null
+        brew --prefix
+        brew --prefix evince
     # ── autotools (once, using ARM64 tools) ─────────────────────────────────
     - name: Run autotools
       run: |
