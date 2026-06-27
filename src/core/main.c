@@ -263,8 +263,8 @@ init_environment()
   g_setenv ("GTK_PREFIX", prefix, TRUE);
   g_info ("Setting GTK_PREFIX=%s\n", prefix);
 
-#endif //end of windows only init
-#ifdef __APPLE__
+//end of windows only init
+#elif __APPLE__
 /* ── Font debug block - remove after fixing ───────────────────── */
 
 
@@ -321,7 +321,20 @@ init_environment()
   CFRelease (ctname);
   CFRelease (ctfont);
   CFRelease (ctdesc);
-#endif
+#elif __linux__
+   add_font_directory (g_build_filename (get_system_data_dir (), "fonts", NULL));
+
+   GList* dirs = NULL;
+   dirs = g_list_append(dirs, g_build_filename (PACKAGE_SOURCE_DIR, COMMANDS_DIR, NULL));
+   dirs = g_list_append(dirs, g_build_filename (get_system_data_dir (), COMMANDS_DIR, NULL));
+   gchar* data_dir = find_dir_for_file ("denemo.scm", dirs);
+
+   append_to_path ("GUILE_LOAD_PATH",
+                  g_build_filename (data_dir, NULL),
+                  g_build_filename (data_dir, "denemo-modules", NULL),
+                  NULL);
+
+
     PangoFontMap *map = pango_cairo_font_map_get_default ();
     PangoFontFamily **families;
     int n_families;
@@ -349,6 +362,32 @@ init_environment()
       g_warning ("Pango could not load 'Denemo 12' at all");
     pango_font_description_free (pdesc);
     g_object_unref (ctx);
+    g_setenv ("LILYPOND_VERBOSE", "1", FALSE);
+
+  gchar *fontpath = NULL;
+  fontpath = find_denemo_file(DENEMO_DIR_FONTS, "feta.ttf");
+  if(fontpath)
+      add_font_file (fontpath);
+  else
+    g_info("Did not find feta.ttf - perhaps installed in system");
+  g_free(fontpath);
+
+  fontpath = find_denemo_file(DENEMO_DIR_FONTS,  "Denemo.ttf");
+  if(fontpath)
+    add_font_file (fontpath);
+  else
+    g_info("Did not find Denemo.ttf - perhaps installed in system");
+  g_free(fontpath);
+
+  fontpath = find_denemo_file(DENEMO_DIR_FONTS,  "emmentaler.ttf");
+  if(fontpath)
+     add_font_file (fontpath);
+  else
+    g_info("Did not find emmentaler.ttf - perhaps installed in system");
+  g_free(fontpath);
+
+  g_setenv ("LYEDITOR", "denemoclient %(line)s %(column)s", FALSE);
+#endif //end Linux/BSD/HURD
 }
 
 
