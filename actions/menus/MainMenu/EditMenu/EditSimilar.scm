@@ -134,7 +134,7 @@
               (cons (_ "Execute Scheme") 'execute)))))
           
         (case choice
-            ((delete) (d-DeleteSlur))
+            ((delete) (d-RemoveSlur))
             ((stop) (set! target #f)(set! continuations #f))
             ((execute) (d-ExecuteScheme))
             ((#f)  (set! target #f))))

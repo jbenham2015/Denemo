@@ -198,3 +198,9 @@
 	(do-movement)
 	(while (d-NextMovement)
 		(do-movement)))
+		
+;test objects after the cursor and perform action when true		
+(define (ForEachFurtherObjectInStaff test action)
+	(while (d-NextObject)
+		(if (test)
+			(action))))
