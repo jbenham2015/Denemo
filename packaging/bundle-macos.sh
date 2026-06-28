@@ -158,13 +158,6 @@ if [ -d "${LOCALE_DIR}" ]; then
 fi
 # -- 5b. Bundle LilyPond
 # ── Bundle official LilyPond release (includes gs in libexec/) ───────────────
-LILY_VERSION="2.26.0"
-LILY_BASE="https://gitlab.com/api/v4/projects/lilypond%2Flilypond/packages/generic/lilypond/${LILY_VERSION}"
-LILY_DIR="${APP_DIR}/Contents/Resources/lilypond"
-mkdir -p "${LILY_DIR}"
-
-echo "Downloading official LilyPond ${LILY_VERSION}..."
-
 # Download and extract ARM64 build
 ARM_TARBALL="lilypond-${LILY_VERSION}-darwin-arm64.tar.gz"
 echo "  Downloading ${ARM_TARBALL}..."
@@ -172,17 +165,57 @@ if ! curl -fL "${LILY_BASE}/${ARM_TARBALL}" -o "/tmp/${ARM_TARBALL}"; then
     echo "ERROR: Failed to download ARM64 LilyPond" >&2
     exit 1
 fi
+
+# Extract and inspect contents
+echo "  Extracting ${ARM_TARBALL}..."
 tar -xz -f "/tmp/${ARM_TARBALL}" -C /tmp/
+
+# List what was actually extracted for debugging
+echo "  Archive contents:"
+ls -la /tmp/ | grep lilypond
+
+# Find the actual extracted directory (might have a different prefix)
+ARM_DIR=$(find /tmp/ -maxdepth 1 -type d -name "lilypond*darwin-arm64*" 2>/dev/null | head -1)
+if [ -z "${ARM_DIR}" ]; then
+    echo "ERROR: Could not find extracted ARM64 LilyPond directory" >&2
+    tar -tzf "/tmp/${ARM_TARBALL}" | head -20
+    exit 1
+fi
+
+# Verify the share directory exists in the found location
+if [ ! -d "${ARM_DIR}/share" ]; then
+    echo "ERROR: share directory not found in ${ARM_DIR}" >&2
+    echo "  Actual contents of ${ARM_DIR}:"
+    ls -la "${ARM_DIR}/" 2>/dev/null || echo "  Directory not readable"
+    exit 1
+fi
+
 rm "/tmp/${ARM_TARBALL}"
 
-# Download and extract x86_64 build
+# Download and extract x86_64 build (same validation)
 X86_TARBALL="lilypond-${LILY_VERSION}-darwin-x86_64.tar.gz"
 echo "  Downloading ${X86_TARBALL}..."
 if ! curl -fL "${LILY_BASE}/${X86_TARBALL}" -o "/tmp/${X86_TARBALL}"; then
     echo "ERROR: Failed to download x86_64 LilyPond" >&2
     exit 1
 fi
+
+echo "  Extracting ${X86_TARBALL}..."
 tar -xz -f "/tmp/${X86_TARBALL}" -C /tmp/
+
+X86_DIR=$(find /tmp/ -maxdepth 1 -type d -name "lilypond*darwin-x86_64*" 2>/dev/null | head -1)
+if [ -z "${X86_DIR}" ]; then
+    echo "ERROR: Could not find extracted x86_64 LilyPond directory" >&2
+    exit 1
+fi
+
+if [ ! -d "${X86_DIR}/share" ]; then
+    echo "ERROR: share directory not found in ${X86_DIR}" >&2
+    echo "  Actual contents of ${X86_DIR}:"
+    ls -la "${X86_DIR}/" 2>/dev/null || echo "  Directory not readable"
+    exit 1
+fi
+
 rm "/tmp/${X86_TARBALL}"
 
 ARM_DIR="/tmp/lilypond-${LILY_VERSION}-darwin-arm64"
