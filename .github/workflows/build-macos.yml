@@ -103,16 +103,19 @@ jobs:
         test -f /usr/local/opt/expat/lib/pkgconfig/expat.pc   && echo "expat OK"   || echo "ERROR: expat missing"
         test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
         test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
-    - name: confirm evince backend
+    - name: confirm evince dependends
       run: |
-        # Confirm EV_BACKENDS_DIR is supported in the source/headers
-        grep -r "EV_BACKENDS_DIR\|ev_backends_dir\|EV_BACKEND" \
-        /usr/local/include/evince /opt/homebrew/include/evince 2>/dev/null | head -20
-        # List what's actually in the backends dir (both .evince-backend descriptors AND .so/.dylib files)
-        ls -la /usr/local/Cellar/evince/48.4/lib/evince/4/backends/
-        ls -la /opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends/
-        file /usr/local/Cellar/evince/48.4/lib/evince/4/backends/libpdfdocument.so
-        file /opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends/libpdfdocument.so
+        echo "=== x86_64 backend dependencies ==="
+        for so in /usr/local/Cellar/evince/48.4/lib/evince/4/backends/*.so; do
+          echo "--- $(basename $so) ---"
+          otool -L "$so"
+        done
+
+        echo "=== arm64 backend dependencies ==="
+        for so in /opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends/*.so; do
+          echo "--- $(basename $so) ---"
+          otool -L "$so"
+        done
     # ── autotools (once, using ARM64 tools) ─────────────────────────────────
     - name: Run autotools
       run: |
