@@ -111,6 +111,8 @@ jobs:
         # List what's actually in the backends dir (both .evince-backend descriptors AND .so/.dylib files)
         ls -la /usr/local/Cellar/evince/48.4/lib/evince/4/backends/
         ls -la /opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends/
+        file /usr/local/Cellar/evince/48.4/lib/evince/4/backends/libpdfdocument.so
+        file /opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends/libpdfdocument.so
     # ── autotools (once, using ARM64 tools) ─────────────────────────────────
     - name: Run autotools
       run: |
