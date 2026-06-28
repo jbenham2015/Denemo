@@ -14,6 +14,8 @@ set -euo pipefail
 # ── Configuration ─────────────────────────────────────────────────────────────
 
 HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
+DENEMO_VERSION="${DENEMO_VERSION:-$(grep AC_INIT configure.ac | grep -oE '[0-9]+.[0-9]+(.[0-9]+)?' | head -1)}"
+DENEMO_VERSION="${DENEMO_VERSION:-unknown}"
 BINARY="${HOMEBREW_PREFIX}/bin/denemo"
 SHARE_DIR="${HOMEBREW_PREFIX}/share/denemo"
 LOCALE_DIR="${HOMEBREW_PREFIX}/share/locale"
