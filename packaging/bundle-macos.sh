@@ -171,14 +171,13 @@ fi
 
 # Extract and inspect contents
 echo "  Extracting ${ARM_TARBALL}..."
-tar -xz -f "/tmp/${ARM_TARBALL}" -C /tmp/
+mkdir -p /tmp/lily-arm64 && tar -xz -f "/tmp/${ARM_TARBALL}" -C /tmp/lily-arm64 --strip-components=1
 
 # List what was actually extracted for debugging
 echo "  Archive contents:"
 ls -la /tmp/ | grep lilypond
 
 # Find the actual extracted directory (might have a different prefix)
-ARM_DIR=$(find /tmp/ -maxdepth 1 -type d -name "lilypond*darwin-arm64*" 2>/dev/null | head -1)
 if [ -z "${ARM_DIR}" ]; then
     echo "ERROR: Could not find extracted ARM64 LilyPond directory" >&2
     tar -tzf "/tmp/${ARM_TARBALL}" | head -20
@@ -204,9 +203,8 @@ if ! curl -fL "${LILY_BASE}/${X86_TARBALL}" -o "/tmp/${X86_TARBALL}"; then
 fi
 
 echo "  Extracting ${X86_TARBALL}..."
-tar -xz -f "/tmp/${X86_TARBALL}" -C /tmp/
+mkdir -p /tmp/lily-x86_64 && tar -xz -f "/tmp/${X86_TARBALL}" -C /tmp/lily-x86_64 --strip-components=1
 
-X86_DIR=$(find /tmp/ -maxdepth 1 -type d -name "lilypond*darwin-x86_64*" 2>/dev/null | head -1)
 if [ -z "${X86_DIR}" ]; then
     echo "ERROR: Could not find extracted x86_64 LilyPond directory" >&2
     exit 1
@@ -221,8 +219,8 @@ fi
 
 rm "/tmp/${X86_TARBALL}"
 
-ARM_DIR="/tmp/lilypond-${LILY_VERSION}-darwin-arm64"
-X86_DIR="/tmp/lilypond-${LILY_VERSION}-darwin-x86_64"
+ARM_DIR="/tmp/lily-arm64"
+X86_DIR="/tmp/lily-x86_64"
 
 # Verify directories exist
 if [ ! -d "${ARM_DIR}/share" ]; then
