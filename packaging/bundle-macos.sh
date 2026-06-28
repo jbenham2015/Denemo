@@ -316,23 +316,96 @@ dylibbundler \
     --search-path "${HOMEBREW_PREFIX}/opt/evince/lib" \
     || true
 
-# Bundle Evince Backend
-# Create destination
-mkdir -p "${APP_DIR}/Contents/lib/evince/4/backends"
+# ============================================================
+# Bundle Evince Backends (Universal Binary)
+# ============================================================
+BACKENDS_DIR="${APP_DIR}/Contents/lib/evince/4/backends"
+LIBS_DIR="${APP_DIR}/Contents/libs"
+INTEL="/usr/local/Cellar/evince/48.4/lib/evince/4/backends"
+ARM="/opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends"
 
-# Lipo each .so into a universal binary
-for BACKEND in pdfdocument psdocument tiffdocument xpsdocument comicsdocument djvudocument; do
-    X86="${APP_DIR}/Contents/lib/evince/4/backends/lib${BACKEND}.so"
-    ARM="/opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends/lib${BACKEND}.so"
-    INTEL="/usr/local/Cellar/evince/48.4/lib/evince/4/backends/lib${BACKEND}.so"
-    lipo -create "$INTEL" "$ARM" -output "${APP_DIR}/Contents/lib/evince/4/backends/lib${BACKEND}.so"
+mkdir -p "${BACKENDS_DIR}"
+
+# --- Step 1: lipo all backends into universal binaries ---
+for BACKEND in comicsdocument djvudocument pdfdocument psdocument tiffdocument xpsdocument; do
+    lipo -create \
+        "${INTEL}/lib${BACKEND}.so" \
+        "${ARM}/lib${BACKEND}.so" \
+        -output "${BACKENDS_DIR}/lib${BACKEND}.so"
+    chmod 644 "${BACKENDS_DIR}/lib${BACKEND}.so"
 done
 
-# .evince-backend descriptor files are plain text — just copy one set (they're identical)
-cp /usr/local/Cellar/evince/48.4/lib/evince/4/backends/*.evince-backend \
-   "${APP_DIR}/Contents/lib/evince/4/backends/"
-for so in "${APP_DIR}/Contents/lib/evince/4/backends/"*.so; do
-    otool -L "$so"
+# Copy descriptor files (plain text, arch-independent)
+cp "${INTEL}/"*.evince-backend "${BACKENDS_DIR}/"
+chmod 644 "${BACKENDS_DIR}/"*.evince-backend
+
+# --- Step 2: Rewrite hardcoded Cellar paths in each .so ---
+# Convention: @loader_path/../../libs/ points to Contents/libs/
+#             @loader_path/../../lib/libevdocument3.4.dylib for evince's own lib
+
+RPATH="@loader_path/../../libs"
+EVINCE_LIB="@loader_path/../../libs/libevdocument3.4.dylib"
+
+rewrite() {
+    local SO="$1"
+    local OLD_X86="$2"
+    local OLD_ARM="$3"
+    local NEW="$4"
+    install_name_tool -change "${OLD_X86}" "${NEW}" "${SO}" 2>/dev/null || true
+    install_name_tool -change "${OLD_ARM}" "${NEW}" "${SO}" 2>/dev/null || true
+}
+
+for SO in "${BACKENDS_DIR}/"*.so; do
+    echo "Rewriting: $(basename ${SO})"
+
+    # evince's own library
+    rewrite "$SO" \
+        "/usr/local/Cellar/evince/48.4/lib/libevdocument3.4.dylib" \
+        "/opt/homebrew/Cellar/evince/48.4/lib/libevdocument3.4.dylib" \
+        "${EVINCE_LIB}"
+
+    # Common deps (already in your bundle)
+    rewrite "$SO" "/usr/local/opt/cairo/lib/libcairo.2.dylib"               "/opt/homebrew/opt/cairo/lib/libcairo.2.dylib"               "${RPATH}/libcairo.2.dylib"
+    rewrite "$SO" "/usr/local/opt/gdk-pixbuf/lib/libgdk_pixbuf-2.0.0.dylib" "/opt/homebrew/opt/gdk-pixbuf/lib/libgdk_pixbuf-2.0.0.dylib" "${RPATH}/libgdk_pixbuf-2.0.0.dylib"
+    rewrite "$SO" "/usr/local/opt/glib/lib/libgobject-2.0.0.dylib"          "/opt/homebrew/opt/glib/lib/libgobject-2.0.0.dylib"          "${RPATH}/libgobject-2.0.0.dylib"
+    rewrite "$SO" "/usr/local/opt/glib/lib/libglib-2.0.0.dylib"             "/opt/homebrew/opt/glib/lib/libglib-2.0.0.dylib"             "${RPATH}/libglib-2.0.0.dylib"
+    rewrite "$SO" "/usr/local/opt/glib/lib/libgio-2.0.0.dylib"              "/opt/homebrew/opt/glib/lib/libgio-2.0.0.dylib"              "${RPATH}/libgio-2.0.0.dylib"
+    rewrite "$SO" "/usr/local/opt/gettext/lib/libintl.8.dylib"              "/opt/homebrew/opt/gettext/lib/libintl.8.dylib"              "${RPATH}/libintl.8.dylib"
+    rewrite "$SO" "/usr/local/opt/gtk+3/lib/libgtk-3.0.dylib"               "/opt/homebrew/opt/gtk+3/lib/libgtk-3.0.dylib"               "${RPATH}/libgtk-3.0.dylib"
+    rewrite "$SO" "/usr/local/opt/pango/lib/libpango-1.0.0.dylib"           "/opt/homebrew/opt/pango/lib/libpango-1.0.0.dylib"           "${RPATH}/libpango-1.0.0.dylib"
+
+    # Backend-specific deps — bundle these too if not already present
+    rewrite "$SO" "/usr/local/opt/poppler/lib/libpoppler-glib.8.dylib"      "/opt/homebrew/opt/poppler/lib/libpoppler-glib.8.dylib"      "${RPATH}/libpoppler-glib.8.dylib"
+    rewrite "$SO" "/usr/local/opt/djvulibre/lib/libdjvulibre.21.dylib"      "/opt/homebrew/opt/djvulibre/lib/libdjvulibre.21.dylib"      "${RPATH}/libdjvulibre.21.dylib"
+    rewrite "$SO" "/usr/local/opt/libarchive/lib/libarchive.13.dylib"       "/opt/homebrew/opt/libarchive/lib/libarchive.13.dylib"       "${RPATH}/libarchive.13.dylib"
+    rewrite "$SO" "/usr/local/opt/libtiff/lib/libtiff.6.dylib"              "/opt/homebrew/opt/libtiff/lib/libtiff.6.dylib"              "${RPATH}/libtiff.6.dylib"
+    rewrite "$SO" "/usr/local/opt/libspectre/lib/libspectre.1.dylib"        "/opt/homebrew/opt/libspectre/lib/libspectre.1.dylib"        "${RPATH}/libspectre.1.dylib"
+    rewrite "$SO" "/usr/local/opt/libgxps/lib/libgxps.2.dylib"              "/opt/homebrew/opt/libgxps/lib/libgxps.2.dylib"              "${RPATH}/libgxps.2.dylib"
+
+    codesign --force --sign - "${SO}"
+done
+
+# --- Step 3: Bundle the backend-specific libs if not already present ---
+# TODO These are NOT common GTK deps — check if your existing bundle script handles them.
+for LIB in \
+    "poppler/lib/libpoppler-glib.8.dylib" \
+    "djvulibre/lib/libdjvulibre.21.dylib" \
+    "libarchive/lib/libarchive.13.dylib" \
+    "libtiff/lib/libtiff.6.dylib" \
+    "libspectre/lib/libspectre.1.dylib" \
+    "libgxps/lib/libgxps.2.dylib"
+do
+    LIBNAME=$(basename "$LIB")
+    if [ ! -f "${LIBS_DIR}/${LIBNAME}" ]; then
+        echo "Bundling missing lib: ${LIBNAME}"
+        lipo -create \
+            "/usr/local/opt/${LIB}" \
+            "/opt/homebrew/opt/${LIB}" \
+            -output "${LIBS_DIR}/${LIBNAME}"
+        codesign --force --sign - "${LIBS_DIR}/${LIBNAME}"
+    else
+        echo "Already bundled: ${LIBNAME}"
+    fi
 done
 # Bundle Ghostscript (required by LilyPond for PDF output)
 GS_BIN="${HOMEBREW_PREFIX}/bin/gs"
