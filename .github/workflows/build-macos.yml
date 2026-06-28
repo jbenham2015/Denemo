@@ -44,9 +44,7 @@ jobs:
           fluid-synth \
           rubberband \
           libsndfile \
-          gettext \
-          ghostscript \
-          lilypond || true
+          gettext || true
 
     # ── Rosetta / x86_64 Homebrew setup ─────────────────────────────────────
     - name: Install Rosetta 2
@@ -94,9 +92,7 @@ jobs:
         rubberband \
         libsndfile \
         gettext \
-        fontconfig \
-        ghostscript \
-        lilypond || true
+        fontconfig || true
 
         # Verify the packages that actually matter for configure are present
         echo "=== Checking critical keg-only packages ==="
@@ -229,18 +225,6 @@ jobs:
         export HOMEBREW_PREFIX="/opt/homebrew"
         chmod +x packaging/bundle-macos.sh
         ./packaging/bundle-macos.sh
-
-    - name: Inspect LilyPond install
-      run: |
-        echo "=== LilyPond binary ===" && find /opt/homebrew -name "lilypond" -type f
-        du -sh /opt/homebrew/Cellar/lilypond/ 2>/dev/null || echo "not in Cellar"
-        du -sh /opt/homebrew/share/lilypond/ 2>/dev/null || echo "no share/lilypond"
-        find macos_staging/Denemo.app/Contents/Resources/share/lilypond -maxdepth 2 -type d 2>/dev/null
-        echo "=== Bundle sizes ==="
-        du -sh macos_staging/Denemo.app/Contents/MacOS/ 2>/dev/null
-        du -sh macos_staging/Denemo.app/Contents/libs/ 2>/dev/null
-        du -sh macos_staging/Denemo.app/Contents/Resources/ 2>/dev/null
-        du -sh macos_staging/Denemo.app/ 2>/dev/null
 
     # ── Upload artifact ──────────────────────────────────────────────────────
     - name: Upload DMG Artifact
