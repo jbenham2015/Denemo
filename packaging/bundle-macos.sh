@@ -16,7 +16,8 @@ set -euo pipefail
 HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 DENEMO_VERSION="${DENEMO_VERSION:-$(grep AC_INIT configure.ac | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)}"
 DENEMO_VERSION="${DENEMO_VERSION:-unknown}"
-
+LILY_VER=$(ls "${RESOURCES}/share/lilypond/" 2>/dev/null | grep -E '^[0-9]+\.[0-9]+' | sort -V | tail -1)
+LILY_VER="${LILY_VER:-2.26.0}"
 BINARY="${HOMEBREW_PREFIX}/bin/denemo"
 SHARE_DIR="${HOMEBREW_PREFIX}/share/denemo"
 LOCALE_DIR="${HOMEBREW_PREFIX}/share/locale"
