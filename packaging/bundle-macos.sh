@@ -157,29 +157,47 @@ if [ -d "${LOCALE_DIR}" ]; then
     done
 fi
 # -- 5b. Bundle LilyPond
-# Download and bundle official LilyPond (includes gs)
+# ── Bundle official LilyPond release (includes gs in libexec/) ───────────────
 LILY_VERSION="2.26.0"
-LILY_ARM="lilypond-${LILY_VERSION}-darwin-arm64.tar.gz"
-LILY_X86="lilypond-${LILY_VERSION}-darwin-x86_64.tar.gz"
 LILY_BASE="https://gitlab.com/api/v4/projects/lilypond%2Flilypond/packages/generic/lilypond/${LILY_VERSION}"
+LILY_DIR="${APP_DIR}/Contents/Resources/lilypond"
+mkdir -p "${LILY_DIR}"
 
-curl -L "${LILY_BASE}/${LILY_ARM}" | tar -xz -C /tmp/
-curl -L "${LILY_BASE}/${LILY_X86}" | tar -xz -C /tmp/
+echo "Downloading official LilyPond ${LILY_VERSION}..."
+curl -L "${LILY_BASE}/lilypond-${LILY_VERSION}-darwin-arm64.tar.gz" \
+    | tar -xz -C /tmp/
+curl -L "${LILY_BASE}/lilypond-${LILY_VERSION}-darwin-x86_64.tar.gz" \
+    | tar -xz -C /tmp/
 
-# Make universal binaries for lilypond and gs
-for bin in lilypond gs; do
-    lipo -create \
-        "/tmp/lilypond-${LILY_VERSION}-darwin-arm64/bin/${bin}" \
-        "/tmp/lilypond-${LILY_VERSION}-darwin-x86_64/bin/${bin}" \
-        -output "${APP_DIR}/Contents/MacOS/${bin}-bin"
-    codesign --force --sign - "${APP_DIR}/Contents/MacOS/${bin}-bin"
+ARM_DIR="/tmp/lilypond-${LILY_VERSION}-darwin-arm64"
+X86_DIR="/tmp/lilypond-${LILY_VERSION}-darwin-x86_64"
+
+# Copy the data tree from arm64 (identical between architectures)
+cp -R "${ARM_DIR}/share"   "${LILY_DIR}/share"
+cp -R "${ARM_DIR}/lib"     "${LILY_DIR}/lib"
+cp -R "${ARM_DIR}/etc"     "${LILY_DIR}/etc"
+cp -R "${ARM_DIR}/libexec" "${LILY_DIR}/libexec"
+mkdir -p "${LILY_DIR}/bin"
+
+# Make universal binaries for everything in bin/ and libexec/
+for dir in bin libexec; do
+    for arm_bin in "${ARM_DIR}/${dir}/"*; do
+        name=$(basename "${arm_bin}")
+        x86_bin="${X86_DIR}/${dir}/${name}"
+        dest="${LILY_DIR}/${dir}/${name}"
+        if [ -f "${x86_bin}" ]; then
+            file "${arm_bin}" | grep -q "Mach-O" || { cp "${arm_bin}" "${dest}"; continue; }
+            lipo -create "${arm_bin}" "${x86_bin}" -output "${dest}"
+            codesign --force --sign - "${dest}"
+            echo "  universal: ${dir}/${name}"
+        else
+            cp "${arm_bin}" "${dest}"
+            chmod +x "${dest}"
+        fi
+    done
 done
 
-# Bundle the data tree (use arm64 copy, they're identical)
-cp -R "/tmp/lilypond-${LILY_VERSION}-darwin-arm64/lib" \
-      "${APP_DIR}/Contents/Resources/lilypond-lib"
-cp -R "/tmp/lilypond-${LILY_VERSION}-darwin-arm64/share" \
-      "${APP_DIR}/Contents/Resources/lilypond-share"
+echo "LilyPond ${LILY_VERSION} bundled."
 
 # Copy Guile's Scheme source and compiled boot files into the bundle.
 # Without ice-9/boot-9 (and friends) Guile aborts before main() even runs.
