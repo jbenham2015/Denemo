@@ -14,8 +14,6 @@ set -euo pipefail
 # ── Configuration ─────────────────────────────────────────────────────────────
 
 HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
-DENEMO_VERSION="${DENEMO_VERSION:-$(grep AC_INIT configure.ac | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)}"
-LILY_VER="${LILY_VER:-2.26.0}"
 BINARY="${HOMEBREW_PREFIX}/bin/denemo"
 SHARE_DIR="${HOMEBREW_PREFIX}/share/denemo"
 LOCALE_DIR="${HOMEBREW_PREFIX}/share/locale"
@@ -24,6 +22,9 @@ APP_BUNDLE="${APP_NAME}.app"
 STAGING_DIR="$(pwd)/macos_staging"
 APP_DIR="${STAGING_DIR}/${APP_BUNDLE}"
 RESOURCES="${APP_DIR}/Contents/Resources"
+LILY_VERSION="2.26.0"
+LILY_BASE="https://gitlab.com/api/v4/projects/lilypond%2Flilypond/packages/generic/lilypond/${LILY_VERSION}"
+LILY_DIR="${RESOURCES}/lilypond"
 DMG_NAME="Denemo-${DENEMO_VERSION}-macOS.dmg"
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 

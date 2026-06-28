@@ -30,25 +30,8 @@ if [ "${DENEMO_DEBUG:-0}" = "1" ]; then
 fi
 
 # ── Guile ─────────────────────────────────────────────────────────────────────
-GUILE_VER="3.0"
-
-# Detect LilyPond version dynamically
-LILY_VER=$(ls "${RESOURCES}/share/lilypond/" 2>/dev/null | grep -E '^[0-9]+\.[0-9]+' | sort -V | tail -1)
-LILY_VER="${LILY_VER:-2.26.0}"
 # ── LilyPond (official self-relocating bundle) ────────────────────────────────
 LILY_DIR="${RESOURCES}/lilypond"
-export PATH="${LILY_DIR}/bin:${LILY_DIR}/libexec:${PATH}"
-
-# GUILE_LOAD_PATH must include both Guile's own boot files AND LilyPond's
-# Scheme files - without either, you get "Unable to find file ice-9/boot-9"
-# or "Unable to find file lily/lily"
-export GUILE_LOAD_PATH="\
-${RESOURCES}/share/guile/${GUILE_VER}:\
-${RESOURCES}/share/guile/site/${GUILE_VER}:\
-${RESOURCES}/share/lilypond/${LILY_VER}/scm"
-export GUILE_LOAD_COMPILED_PATH="\
-${RESOURCES}/lib/guile/${GUILE_VER}/ccache:\
-${RESOURCES}/lib/guile/${GUILE_VER}/site-ccache"
 export GUILE_SYSTEM_EXTENSIONS_PATH="${RESOURCES}/lib/guile/${GUILE_VER}/extensions"
 
 # ── Evince Backend ────────────────────────────────────────────────────────────
