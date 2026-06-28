@@ -316,6 +316,9 @@ dylibbundler \
     --search-path "${HOMEBREW_PREFIX}/opt/evince/lib" \
     || true
 
+# Bundle Evince Backend
+cp /usr/local/Cellar/evince/48.4/lib/evince/4/backends/* ${APP_DIR}/Contents/lib/evince/4/backends/
+cp ${HOMEBREW_PREFIX}/Cellar/evince/48.4/lib/evince/4/backends/* ${APP_DIR}/Contents/lib/evince/4/backends/
 # Bundle Ghostscript (required by LilyPond for PDF output)
 GS_BIN="${HOMEBREW_PREFIX}/bin/gs"
 
