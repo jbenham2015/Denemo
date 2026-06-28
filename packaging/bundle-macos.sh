@@ -15,8 +15,6 @@ set -euo pipefail
 
 HOMEBREW_PREFIX="${HOMEBREW_PREFIX:-/opt/homebrew}"
 DENEMO_VERSION="${DENEMO_VERSION:-$(grep AC_INIT configure.ac | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)}"
-DENEMO_VERSION="${DENEMO_VERSION:-unknown}"
-LILY_VER=$(ls "${RESOURCES}/share/lilypond/" 2>/dev/null | grep -E '^[0-9]+\.[0-9]+' | sort -V | tail -1)
 LILY_VER="${LILY_VER:-2.26.0}"
 BINARY="${HOMEBREW_PREFIX}/bin/denemo"
 SHARE_DIR="${HOMEBREW_PREFIX}/share/denemo"
@@ -25,6 +23,7 @@ APP_NAME="Denemo"
 APP_BUNDLE="${APP_NAME}.app"
 STAGING_DIR="$(pwd)/macos_staging"
 APP_DIR="${STAGING_DIR}/${APP_BUNDLE}"
+RESOURCES="${APP_DIR}/Contents/Resources"
 DMG_NAME="Denemo-${DENEMO_VERSION}-macOS.dmg"
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 
@@ -262,9 +261,6 @@ done
 
 echo "LilyPond ${LILY_VERSION} bundled."
 
-# Copy Guile's Scheme source and compiled boot files into the bundle.
-# Without ice-9/boot-9 (and friends) Guile aborts before main() even runs.
-RESOURCES="${APP_DIR}/Contents/Resources"
 
 # Detect installed Guile version (handles 3.0, future 3.2, etc.)
 GUILE_VER=$(ls "${HOMEBREW_PREFIX}/share/guile/" | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -1)
