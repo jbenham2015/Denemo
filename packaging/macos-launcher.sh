@@ -35,6 +35,9 @@ GUILE_VER="3.0"
 # Detect LilyPond version dynamically
 LILY_VER=$(ls "${RESOURCES}/share/lilypond/" 2>/dev/null | grep -E '^[0-9]+\.[0-9]+' | sort -V | tail -1)
 LILY_VER="${LILY_VER:-2.26.0}"
+# ── LilyPond (official self-relocating bundle) ────────────────────────────────
+LILY_DIR="${RESOURCES}/lilypond"
+export PATH="${LILY_DIR}/bin:${LILY_DIR}/libexec:${PATH}"
 
 # GUILE_LOAD_PATH must include both Guile's own boot files AND LilyPond's
 # Scheme files - without either, you get "Unable to find file ice-9/boot-9"
@@ -56,11 +59,8 @@ export EV_BACKENDS_DIR="$BUNDLE/Contents/lib/evince/4/backends"
 # ── Denemo ────────────────────────────────────────────────────────────────────
 export DENEMO_DATA_DIR="${RESOURCES}/share"
 
-# ── LilyPond ──────────────────────────────────────────────────────────────────
-# LilyPond needs its own datadir for fonts and ly includes
-export LILYPOND_DATADIR="${RESOURCES}/share/lilypond/${LILY_VER}"
-
 # ── PATH - MacOS dir first so lilypond and gs are found before system copies ──
 export PATH="${BUNDLE}/Contents/MacOS:${PATH}"
 export G_MESSAGES_DEBUG=all
 exec "${BUNDLE}/Contents/MacOS/denemo-bin" "$@" 2>&1
+
