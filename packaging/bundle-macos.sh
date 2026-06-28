@@ -317,8 +317,23 @@ dylibbundler \
     || true
 
 # Bundle Evince Backend
-cp /usr/local/Cellar/evince/48.4/lib/evince/4/backends/* ${APP_DIR}/Contents/lib/evince/4/backends/
-cp ${HOMEBREW_PREFIX}/Cellar/evince/48.4/lib/evince/4/backends/* ${APP_DIR}/Contents/lib/evince/4/backends/
+# Create destination
+mkdir -p "${APP_DIR}/Contents/lib/evince/4/backends"
+
+# Lipo each .so into a universal binary
+for BACKEND in pdfdocument psdocument tiffdocument xpsdocument comicsdocument djvudocument; do
+    X86="${APP_DIR}/Contents/lib/evince/4/backends/lib${BACKEND}.so"
+    ARM="/opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends/lib${BACKEND}.so"
+    INTEL="/usr/local/Cellar/evince/48.4/lib/evince/4/backends/lib${BACKEND}.so"
+    lipo -create "$INTEL" "$ARM" -output "${APP_DIR}/Contents/lib/evince/4/backends/lib${BACKEND}.so"
+done
+
+# .evince-backend descriptor files are plain text — just copy one set (they're identical)
+cp /usr/local/Cellar/evince/48.4/lib/evince/4/backends/*.evince-backend \
+   "${APP_DIR}/Contents/lib/evince/4/backends/"
+for so in "${APP_DIR}/Contents/lib/evince/4/backends/"*.so; do
+    otool -L "$so"
+done
 # Bundle Ghostscript (required by LilyPond for PDF output)
 GS_BIN="${HOMEBREW_PREFIX}/bin/gs"
 
