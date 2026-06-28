@@ -51,7 +51,8 @@ export GUILE_SYSTEM_EXTENSIONS_PATH="${RESOURCES}/lib/guile/${GUILE_VER}/extensi
 # ── Evince Backend ────────────────────────────────────────────────────────────
 BUNDLE="$(cd "$(dirname "$0")/../.."; pwd)"
 export EV_BACKENDS_DIR="$BUNDLE/Contents/lib/evince/4/backends"
-exec "$BUNDLE/Contents/MacOS/denemo-bin" "$@"
+# we may or not need to add this export EVINCE_LIB="$BUNDLE/Contents/lib"
+#exec "$BUNDLE/Contents/MacOS/denemo-bin" "$@"
 # ── Denemo ────────────────────────────────────────────────────────────────────
 export DENEMO_DATA_DIR="${RESOURCES}/share"
 
