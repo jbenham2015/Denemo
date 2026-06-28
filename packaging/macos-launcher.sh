@@ -48,6 +48,10 @@ ${RESOURCES}/lib/guile/${GUILE_VER}/ccache:\
 ${RESOURCES}/lib/guile/${GUILE_VER}/site-ccache"
 export GUILE_SYSTEM_EXTENSIONS_PATH="${RESOURCES}/lib/guile/${GUILE_VER}/extensions"
 
+# ── Evince Backend ────────────────────────────────────────────────────────────
+BUNDLE="$(cd "$(dirname "$0")/../.."; pwd)"
+export EV_BACKENDS_DIR="$BUNDLE/Contents/lib/evince/4/backends"
+exec "$BUNDLE/Contents/MacOS/denemo-bin" "$@"
 # ── Denemo ────────────────────────────────────────────────────────────────────
 export DENEMO_DATA_DIR="${RESOURCES}/share"
 
