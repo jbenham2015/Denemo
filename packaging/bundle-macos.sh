@@ -164,13 +164,42 @@ LILY_DIR="${APP_DIR}/Contents/Resources/lilypond"
 mkdir -p "${LILY_DIR}"
 
 echo "Downloading official LilyPond ${LILY_VERSION}..."
-curl -L "${LILY_BASE}/lilypond-${LILY_VERSION}-darwin-arm64.tar.gz" \
-    | tar -xz -C /tmp/
-curl -L "${LILY_BASE}/lilypond-${LILY_VERSION}-darwin-x86_64.tar.gz" \
-    | tar -xz -C /tmp/
+
+# Download and extract ARM64 build
+ARM_TARBALL="lilypond-${LILY_VERSION}-darwin-arm64.tar.gz"
+echo "  Downloading ${ARM_TARBALL}..."
+if ! curl -fL "${LILY_BASE}/${ARM_TARBALL}" -o "/tmp/${ARM_TARBALL}"; then
+    echo "ERROR: Failed to download ARM64 LilyPond" >&2
+    exit 1
+fi
+tar -xz -f "/tmp/${ARM_TARBALL}" -C /tmp/
+rm "/tmp/${ARM_TARBALL}"
+
+# Download and extract x86_64 build
+X86_TARBALL="lilypond-${LILY_VERSION}-darwin-x86_64.tar.gz"
+echo "  Downloading ${X86_TARBALL}..."
+if ! curl -fL "${LILY_BASE}/${X86_TARBALL}" -o "/tmp/${X86_TARBALL}"; then
+    echo "ERROR: Failed to download x86_64 LilyPond" >&2
+    exit 1
+fi
+tar -xz -f "/tmp/${X86_TARBALL}" -C /tmp/
+rm "/tmp/${X86_TARBALL}"
 
 ARM_DIR="/tmp/lilypond-${LILY_VERSION}-darwin-arm64"
 X86_DIR="/tmp/lilypond-${LILY_VERSION}-darwin-x86_64"
+
+# Verify directories exist
+if [ ! -d "${ARM_DIR}/share" ]; then
+    echo "ERROR: ARM64 LilyPond share directory not found at ${ARM_DIR}/share" >&2
+    echo "  Download may have failed or archive structure changed" >&2
+    exit 1
+fi
+
+if [ ! -d "${X86_DIR}/share" ]; then
+    echo "ERROR: x86_64 LilyPond share directory not found at ${X86_DIR}/share" >&2
+    echo "  Download may have failed or archive structure changed" >&2
+    exit 1
+fi
 
 # Copy the data tree from arm64 (identical between architectures)
 cp -R "${ARM_DIR}/share"   "${LILY_DIR}/share"
