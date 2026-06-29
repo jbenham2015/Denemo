@@ -172,68 +172,18 @@ fi
 # Extract and inspect contents
 echo "  Extracting ${ARM_TARBALL}..."
 mkdir -p /tmp/lily-arm64 && tar -xz -f "/tmp/${ARM_TARBALL}" -C /tmp/lily-arm64 --strip-components=1
-
-# List what was actually extracted for debugging
-echo "  Archive contents:"
-ls -la /tmp/ | grep lilypond
-
-# Find the actual extracted directory (might have a different prefix)
-if [ -z "${ARM_DIR}" ]; then
-    echo "ERROR: Could not find extracted ARM64 LilyPond directory" >&2
-    tar -tzf "/tmp/${ARM_TARBALL}" | head -20
-    exit 1
-fi
-
-# Verify the share directory exists in the found location
-if [ ! -d "${ARM_DIR}/share" ]; then
-    echo "ERROR: share directory not found in ${ARM_DIR}" >&2
-    echo "  Actual contents of ${ARM_DIR}:"
-    ls -la "${ARM_DIR}/" 2>/dev/null || echo "  Directory not readable"
-    exit 1
-fi
-
-rm "/tmp/${ARM_TARBALL}"
-
-# Download and extract x86_64 build (same validation)
+ARM_DIR="/tmp/lily-arm64"
+X86_DIR="/tmp/lily-x86_64"
+# Download and extract x86_64 build
 X86_TARBALL="lilypond-${LILY_VERSION}-darwin-x86_64.tar.gz"
 echo "  Downloading ${X86_TARBALL}..."
 if ! curl -fL "${LILY_BASE}/${X86_TARBALL}" -o "/tmp/${X86_TARBALL}"; then
     echo "ERROR: Failed to download x86_64 LilyPond" >&2
     exit 1
 fi
-
 echo "  Extracting ${X86_TARBALL}..."
 mkdir -p /tmp/lily-x86_64 && tar -xz -f "/tmp/${X86_TARBALL}" -C /tmp/lily-x86_64 --strip-components=1
-
-if [ -z "${X86_DIR}" ]; then
-    echo "ERROR: Could not find extracted x86_64 LilyPond directory" >&2
-    exit 1
-fi
-
-if [ ! -d "${X86_DIR}/share" ]; then
-    echo "ERROR: share directory not found in ${X86_DIR}" >&2
-    echo "  Actual contents of ${X86_DIR}:"
-    ls -la "${X86_DIR}/" 2>/dev/null || echo "  Directory not readable"
-    exit 1
-fi
-
-rm "/tmp/${X86_TARBALL}"
-
-ARM_DIR="/tmp/lily-arm64"
-X86_DIR="/tmp/lily-x86_64"
-
-# Verify directories exist
-if [ ! -d "${ARM_DIR}/share" ]; then
-    echo "ERROR: ARM64 LilyPond share directory not found at ${ARM_DIR}/share" >&2
-    echo "  Download may have failed or archive structure changed" >&2
-    exit 1
-fi
-
-if [ ! -d "${X86_DIR}/share" ]; then
-    echo "ERROR: x86_64 LilyPond share directory not found at ${X86_DIR}/share" >&2
-    echo "  Download may have failed or archive structure changed" >&2
-    exit 1
-fi
+rm -f "/tmp/${ARM_TARBALL}" "/tmp/${X86_TARBALL}"
 
 # Copy the data tree from arm64 (identical between architectures)
 cp -R "${ARM_DIR}/share"   "${LILY_DIR}/share"
@@ -261,49 +211,6 @@ for dir in bin libexec; do
 done
 
 echo "LilyPond ${LILY_VERSION} bundled."
-
-
-# Detect installed Guile version (handles 3.0, future 3.2, etc.)
-GUILE_VER=$(ls "${HOMEBREW_PREFIX}/share/guile/" | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -1)
-echo "=== Bundling Guile ${GUILE_VER} ==="
-
-# 1. Scheme source tree (ice-9/, srfi/, system/, …)
-mkdir -p "${RESOURCES}/share/guile/${GUILE_VER}"
-cp -R "${HOMEBREW_PREFIX}/share/guile/${GUILE_VER}/" \
-      "${RESOURCES}/share/guile/${GUILE_VER}/"
-
-# 2. Site directory (may be empty but must exist)
-mkdir -p "${RESOURCES}/share/guile/site/${GUILE_VER}"
-if [ -d "${HOMEBREW_PREFIX}/share/guile/site/${GUILE_VER}" ]; then
-  cp -R "${HOMEBREW_PREFIX}/share/guile/site/${GUILE_VER}/" \
-        "${RESOURCES}/share/guile/site/${GUILE_VER}/"
-fi
-
-# 3. Pre-compiled .go cache (speeds startup)
-mkdir -p "${RESOURCES}/lib/guile/${GUILE_VER}/ccache"
-if [ -d "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/ccache" ]; then
-  cp -R "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/ccache/" \
-        "${RESOURCES}/lib/guile/${GUILE_VER}/ccache/"
-fi
-
-# 4. Site compiled cache (usually empty; must exist for the env var to be valid)
-mkdir -p "${RESOURCES}/lib/guile/${GUILE_VER}/site-ccache"
-if [ -d "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/site-ccache" ]; then
-  cp -R "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/site-ccache/" \
-        "${RESOURCES}/lib/guile/${GUILE_VER}/site-ccache/"
-fi
-
-# 5. Extensions (.so plugins Guile loads at runtime)
-mkdir -p "${RESOURCES}/lib/guile/${GUILE_VER}/extensions"
-if [ -d "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/extensions" ]; then
-  cp -R "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/extensions/" \
-        "${RESOURCES}/lib/guile/${GUILE_VER}/extensions/"
-fi
-
-echo "=== Guile bundle contents ==="
-du -sh "${RESOURCES}/share/guile/" 2>/dev/null
-du -sh "${RESOURCES}/lib/guile/"   2>/dev/null
-
 # ── Install Denemo launcher ─────────────────────────────────────────────────────────
 mv "${APP_DIR}/Contents/MacOS/denemo" \
    "${APP_DIR}/Contents/MacOS/denemo-bin"
