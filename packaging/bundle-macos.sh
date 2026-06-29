@@ -185,6 +185,7 @@ echo "  Extracting ${X86_TARBALL}..."
 mkdir -p /tmp/lily-x86_64 && tar -xz -f "/tmp/${X86_TARBALL}" -C /tmp/lily-x86_64 --strip-components=1
 rm -f "/tmp/${ARM_TARBALL}" "/tmp/${X86_TARBALL}"
 
+mkdir -p "${LILY_DIR}"
 # Copy the data tree from arm64 (identical between architectures)
 cp -R "${ARM_DIR}/share"   "${LILY_DIR}/share"
 cp -R "${ARM_DIR}/lib"     "${LILY_DIR}/lib"
