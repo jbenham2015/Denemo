@@ -29,14 +29,11 @@ if [ "${DENEMO_DEBUG:-0}" = "1" ]; then
 	export FC_DEBUG=4
 fi
 
-# ── Guile ─────────────────────────────────────────────────────────────────────
-# Guile needs its Scheme boot files (ice-9/boot-9, etc.) and compiled cache.
-# Without these it aborts immediately with "Unable to find file ice-9/boot-9".
-# We ship the guile share tree inside Resources/share/guile and the compiled
-# .go files inside Resources/lib/guile/<ver>/ccache (copied by bundle script).
+# ── Guile (from official LilyPond bundle) ─────────────────────────────────────
 GUILE_VER="3.0"
-export GUILE_LOAD_PATH="${RESOURCES}/share/guile/${GUILE_VER}:${RESOURCES}/share/guile/site/${GUILE_VER}"
-export GUILE_LOAD_COMPILED_PATH="${RESOURCES}/lib/guile/${GUILE_VER}/ccache:${RESOURCES}/lib/guile/${GUILE_VER}/site-ccache"
+export GUILE_LOAD_PATH="${LILY_DIR}/share/guile/${GUILE_VER}"
+export GUILE_LOAD_COMPILED_PATH="${LILY_DIR}/lib/guile/${GUILE_VER}/ccache"
+export GUILE_SYSTEM_EXTENSIONS_PATH="${LILY_DIR}/lib/guile/${GUILE_VER}/extensions"
 
 # ── LilyPond (official self-relocating bundle) ────────────────────────────────
 LILY_DIR="${RESOURCES}/lilypond"
