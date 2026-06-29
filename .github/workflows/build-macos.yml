@@ -98,17 +98,17 @@ jobs:
         test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
         test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
     - name: Build minimal poppler
-        run: |
-          brew install cmake
-          git clone --depth 1 --branch poppler-24.x.x \
-          https://gitlab.freedesktop.org/poppler/poppler.git /tmp/poppler
-          cmake -S /tmp/poppler -B /tmp/poppler-build \
-            -DENABLE_NSS3=OFF \
-            -DENABLE_GPGME=OFF \
-            -DENABLE_LIBCURL=OFF \
-            -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
-          cmake --build /tmp/poppler-build -j4
-          cmake --install /tmp/poppler-build
+      run: |
+        brew install cmake
+        git clone --depth 1 --branch poppler-24.x.x \
+        https://gitlab.freedesktop.org/poppler/poppler.git /tmp/poppler
+        cmake -S /tmp/poppler -B /tmp/poppler-build \
+          -DENABLE_NSS3=OFF \
+          -DENABLE_GPGME=OFF \
+          -DENABLE_LIBCURL=OFF \
+          -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
+        cmake --build /tmp/poppler-build -j4
+        cmake --install /tmp/poppler-build
 
     # ── autotools (once, using ARM64 tools) ─────────────────────────────────
     - name: Run autotools
