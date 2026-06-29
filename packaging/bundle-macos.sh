@@ -299,6 +299,8 @@ for SO in "${BACKENDS_DIR}/"*.so; do
 
     # Backend-specific deps — bundle these too if not already present
     rewrite "$SO" "/usr/local/opt/poppler/lib/libpoppler-glib.8.dylib"      "/opt/homebrew/opt/poppler/lib/libpoppler-glib.8.dylib"      "${RPATH}/libpoppler-glib.8.dylib"
+    "poppler/lib/libpoppler.dylib" \
+    rewrite "$SO" "@rpath/libpoppler.161.dylib" "@rpath/libpoppler.161.dylib" "${RPATH}/libpoppler.161.dylib"
     rewrite "$SO" "/usr/local/opt/djvulibre/lib/libdjvulibre.21.dylib"      "/opt/homebrew/opt/djvulibre/lib/libdjvulibre.21.dylib"      "${RPATH}/libdjvulibre.21.dylib"
     rewrite "$SO" "/usr/local/opt/libarchive/lib/libarchive.13.dylib"       "/opt/homebrew/opt/libarchive/lib/libarchive.13.dylib"       "${RPATH}/libarchive.13.dylib"
     rewrite "$SO" "/usr/local/opt/libtiff/lib/libtiff.6.dylib"              "/opt/homebrew/opt/libtiff/lib/libtiff.6.dylib"              "${RPATH}/libtiff.6.dylib"
@@ -312,6 +314,7 @@ done
 # TODO These are NOT common GTK deps — check if your existing bundle script handles them.
 for LIB in \
     "poppler/lib/libpoppler-glib.8.dylib" \
+    "poppler/lib/libpoppler.dylib" \
     "djvulibre/lib/libdjvulibre.21.dylib" \
     "libarchive/lib/libarchive.13.dylib" \
     "libtiff/lib/libtiff.6.dylib" \
@@ -330,6 +333,16 @@ do
         echo "Already bundled: ${LIBNAME}"
     fi
 done
+# Fix install names for poppler libs (copied without -id rewrite)
+install_name_tool -id "@executable_path/../libs/libpoppler-glib.8.dylib" \
+    "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+install_name_tool -id "@executable_path/../libs/libpoppler.dylib" \
+    "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
+install_name_tool -change "@rpath/libpoppler.161.dylib" \
+    "@executable_path/../libs/libpoppler.dylib" \
+    "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+codesign --force --sign - "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+codesign --force --sign - "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
 # ── 8. Bundle GDK pixbuf loaders ─────────────────────────────────────────────
 # GTK needs pixbuf loaders to render images; copy and update the cache.
 
