@@ -29,26 +29,20 @@ if [ "${DENEMO_DEBUG:-0}" = "1" ]; then
 	export FC_DEBUG=4
 fi
 
-# ── Guile (from official LilyPond bundle) ─────────────────────────────────────
+# ── LilyPond (official self-relocating bundle) ────────────────────────────────
+LILY_DIR="${RESOURCES}/lilypond"
+export PATH="${LILY_DIR}/bin:${LILY_DIR}/libexec:${BUNDLE}/Contents/MacOS:${PATH}"
+
+# ── Guile (from bundled LilyPond, shared with Denemo) ─────────────────────────
 GUILE_VER="3.0"
 export GUILE_LOAD_PATH="${LILY_DIR}/share/guile/${GUILE_VER}"
 export GUILE_LOAD_COMPILED_PATH="${LILY_DIR}/lib/guile/${GUILE_VER}/ccache"
 export GUILE_SYSTEM_EXTENSIONS_PATH="${LILY_DIR}/lib/guile/${GUILE_VER}/extensions"
 
-# ── LilyPond (official self-relocating bundle) ────────────────────────────────
-LILY_DIR="${RESOURCES}/lilypond"
-export GUILE_SYSTEM_EXTENSIONS_PATH="${RESOURCES}/lib/guile/${GUILE_VER}/extensions"
-
 # ── Evince Backend ────────────────────────────────────────────────────────────
-BUNDLE="$(cd "$(dirname "$0")/../.."; pwd)"
-export EV_BACKENDS_DIR="$BUNDLE/Contents/lib/evince/4/backends"
-# we may or not need to add this export EVINCE_LIB="$BUNDLE/Contents/lib"
-#exec "$BUNDLE/Contents/MacOS/denemo-bin" "$@"
+export EV_BACKENDS_DIR="${BUNDLE}/Contents/lib/evince/4/backends"
+
 # ── Denemo ────────────────────────────────────────────────────────────────────
 export DENEMO_DATA_DIR="${RESOURCES}/share"
 
-# ── PATH - MacOS dir first so lilypond and gs are found before system copies ──
-export PATH="${BUNDLE}/Contents/MacOS:${PATH}"
-export G_MESSAGES_DEBUG=all
 exec "${BUNDLE}/Contents/MacOS/denemo-bin" "$@" 2>&1
-
