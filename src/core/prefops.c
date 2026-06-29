@@ -32,7 +32,7 @@ set_default_lilypond_path (void)
 #ifdef G_OS_WIN32
   ret->lilypath = g_string_new (g_build_filename (get_system_bin_dir (), "..", "lilypond", "bin", "lilypond-windows.exe", NULL));
 #elif defined __APPLE__
-  ret->lilypath = g_string_new (g_build_filename (get_system_bin_dir (), "lilypond", NULL));
+  ret->lilypath = g_string_new (g_build_filename (get_system_bin_dir (), "..", "Resources", "lilypond", "bin", "lilypond", NULL));
   g_message ("OSX set lilypond path to %s", ret->lilypath->str);
 #else
   ret->lilypath = g_string_new ("lilypond");
