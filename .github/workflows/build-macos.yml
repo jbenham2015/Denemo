@@ -43,6 +43,7 @@ jobs:
           fluid-synth \
           rubberband \
           libsndfile \
+          cairo \
           gettext || true
 
     # ── Rosetta / x86_64 Homebrew setup ─────────────────────────────────────
@@ -90,6 +91,7 @@ jobs:
         rubberband \
         libsndfile \
         gettext \
+        cairo \
         fontconfig || true
 
         # Verify the packages that actually matter for configure are present
