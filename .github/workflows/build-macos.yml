@@ -120,11 +120,11 @@ jobs:
           -DENABLE_GPGME=OFF \
           -DENABLE_LIBCURL=OFF \
           -DENABLE_LIBTIFF=OFF \
-          -DENABLE_LIBJPEG=ON \
+          -DENABLE_LIBJPEG=OFF \
           -DENABLE_BOOST=OFF \
           -DENABLE_OPENJPEG=OFF \
+          -DENABLE_LIBOPENJPEG=none \
           -DENABLE_CAIRO=ON \
-          -DENABLE_DCTDECODER=libjpeg
           -DCMAKE_PREFIX_PATH="/usr/local"
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
         cmake --build /tmp/poppler-build -j4
@@ -142,8 +142,8 @@ jobs:
           -DENABLE_LIBJPEG=OFF \
           -DENABLE_BOOST=OFF \
           -DENABLE_OPENJPEG=OFF \
+          -DENABLE_LIBOPENJPEG=none
           -DENABLE_CAIRO=ON \
-          -DENABLE_DCTDECODER=libjpeg \
           -DCMAKE_PREFIX_PATH="/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install-x86_64
         arch -x86_64 cmake --build /tmp/poppler-build-x86_64 -j4
