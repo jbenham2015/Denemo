@@ -311,9 +311,19 @@ done
 
 # --- Step 3: Bundle the backend-specific libs if not already present ---
 # TODO These are NOT common GTK deps — check if your existing bundle script handles them.
+# Bundle poppler from custom minimal build (arm64 + x86_64, no NSS/GPGME)
+lipo -create \
+    "/tmp/poppler-install/lib/libpoppler.161.dylib" \
+    "/tmp/poppler-install-x86_64/lib/libpoppler.161.dylib" \
+    -output "${LIBS_DIR}/libpoppler.161.dylib"
+codesign --force --sign - "${LIBS_DIR}/libpoppler.161.dylib"
+lipo -create \
+    "/tmp/poppler-install/lib/libpoppler-glib.8.dylib" \
+    "/tmp/poppler-install-x86_64/lib/libpoppler-glib.8.dylib" \
+    -output "${LIBS_DIR}/libpoppler-glib.8.dylib"
+codesign --force --sign - "${LIBS_DIR}/libpoppler-glib.8.dylib"
+
 for LIB in \
-    "poppler/lib/libpoppler-glib.8.dylib" \
-    "poppler/lib/libpoppler.161.dylib" \
     "djvulibre/lib/libdjvulibre.21.dylib" \
     "libarchive/lib/libarchive.13.dylib" \
     "libtiff/lib/libtiff.6.dylib" \
