@@ -126,7 +126,7 @@ jobs:
           -DENABLE_LIBOPENJPEG=none \
           -DENABLE_DCTDECODER=none \
           -DENABLE_CAIRO=ON \
-          -DCMAKE_PREFIX_PATH="/usr/local"
+          -DCMAKE_PREFIX_PATH="/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
         cmake --build /tmp/poppler-build -j4
         cmake --install /tmp/poppler-build
