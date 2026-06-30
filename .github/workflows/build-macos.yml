@@ -105,6 +105,8 @@ jobs:
         git clone --depth 1 --branch poppler-24.12.0 \
         https://gitlab.freedesktop.org/poppler/poppler.git /tmp/poppler
         cmake -S /tmp/poppler -B /tmp/poppler-build \
+          -DENABLE_QT5=OFF \
+          -DENABLE_QT6=OFF \
           -DENABLE_NSS3=OFF \
           -DENABLE_GPGME=OFF \
           -DENABLE_LIBCURL=OFF \
@@ -119,6 +121,8 @@ jobs:
     - name: Build minimal poppler (x86_64)
       run: |
         arch -x86_64 cmake -S /tmp/poppler -B /tmp/poppler-build-x86_64 \
+          -DENABLE_QT5=OFF \
+          -DENABLE_QT6=OFF \
           -DENABLE_NSS3=OFF \
           -DENABLE_GPGME=OFF \
           -DENABLE_LIBCURL=OFF \
