@@ -124,6 +124,7 @@ jobs:
           -DENABLE_BOOST=OFF \
           -DENABLE_OPENJPEG=OFF \
           -DENABLE_LIBOPENJPEG=none \
+          -DENABLE_DCTDECODER=none \
           -DENABLE_CAIRO=ON \
           -DCMAKE_PREFIX_PATH="/usr/local"
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
@@ -142,7 +143,8 @@ jobs:
           -DENABLE_LIBJPEG=OFF \
           -DENABLE_BOOST=OFF \
           -DENABLE_OPENJPEG=OFF \
-          -DENABLE_LIBOPENJPEG=none
+          -DENABLE_LIBOPENJPEG=none \
+          -DENABLE_DCTDECODER=none \
           -DENABLE_CAIRO=ON \
           -DCMAKE_PREFIX_PATH="/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install-x86_64
