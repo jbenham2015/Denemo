@@ -70,7 +70,8 @@ jobs:
         rm -f /usr/local/bin/python3-config /usr/local/bin/python3.14-config
         rm -f /usr/local/bin/pydoc3 /usr/local/bin/pydoc3.14
         rm -f /usr/local/bin/2to3 /usr/local/bin/2to3-3.14
-
+    - name: Check poppler version
+      run: brew info poppler
     - name: Install x86_64 build dependencies via Rosetta
       run: |
         export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
