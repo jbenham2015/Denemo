@@ -80,6 +80,7 @@ jobs:
         libtool \
         intltool \
         pkg-config \
+        cmake \
         gtk+3 \
         librsvg \
         gtksourceview3 \
@@ -123,7 +124,7 @@ jobs:
           -DENABLE_BOOST=OFF \
           -DENABLE_OPENJPEG=OFF \
           -DENABLE_CAIRO=ON \
-          -DCMAKE_PREFIX_PATH="/opt/homebrew;/usr/local" \
+          -DCMAKE_PREFIX_PATH="/usr/local"
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
         cmake --build /tmp/poppler-build -j4
         cmake --install /tmp/poppler-build
