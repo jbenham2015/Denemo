@@ -43,6 +43,10 @@ jobs:
           fluid-synth \
           rubberband \
           libsndfile \
+          openjpeg \
+          lcms2 \
+          freetype \
+          fontconfig \
           cairo \
           gettext || true
 
@@ -91,6 +95,10 @@ jobs:
         rubberband \
         libsndfile \
         gettext \
+        openjpeg \
+        lcms2 \
+        freetype \
+        fontconfig \
         cairo \
         fontconfig || true
 
