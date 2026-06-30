@@ -112,6 +112,7 @@ jobs:
           -DENABLE_LIBCURL=OFF \
           -DENABLE_LIBTIFF=OFF \
           -DENABLE_LIBJPEG=OFF \
+          -DENABLE_BOOST=OFF \
           -DENABLE_CAIRO=ON \
           -DCMAKE_PREFIX_PATH="/opt/homebrew;/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
@@ -128,6 +129,7 @@ jobs:
           -DENABLE_LIBCURL=OFF \
           -DENABLE_LIBTIFF=OFF \
           -DENABLE_LIBJPEG=OFF \
+          -DENABLE_BOOST=OFF \
           -DENABLE_CAIRO=ON \
           -DCMAKE_PREFIX_PATH="/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install-x86_64
