@@ -105,6 +105,7 @@ jobs:
         test -f /usr/local/opt/expat/lib/pkgconfig/expat.pc   && echo "expat OK"   || echo "ERROR: expat missing"
         test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
         test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
+
     - name: Build minimal poppler (arm64)
       run: |
         brew install cmake
@@ -138,7 +139,7 @@ jobs:
 
     - name: Build minimal poppler (x86_64)
       run: |
-        arch -x86_64 cmake -S /tmp/poppler -B /tmp/poppler-build-x86_64 \
+        arch -x86_64 /usr/local/bin/cmake -S /tmp/poppler -B /tmp/poppler-build-x86_64 \
           -DENABLE_QT5=OFF \
           -DENABLE_QT6=OFF \
           -DENABLE_NSS3=OFF \
@@ -160,7 +161,7 @@ jobs:
           -DCMAKE_SHARED_LINKER_FLAGS="-L/usr/local/lib" \
           -DCMAKE_EXE_LINKER_FLAGS="-L/usr/local/lib" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install-x86_64
-        arch -x86_64 cmake --build /tmp/poppler-build-x86_64 -j4
+        arch -x86_64 /usr/local/bin/cmake --build /tmp/poppler-build-x86_64 -j4
         cmake --install /tmp/poppler-build-x86_64
 
     # ── autotools (once, using ARM64 tools) ─────────────────────────────────
