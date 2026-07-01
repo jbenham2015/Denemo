@@ -44,7 +44,6 @@ jobs:
           rubberband \
           libsndfile \
           jpeg \
-          lcms2 \
           freetype \
           fontconfig \
           cairo \
@@ -96,7 +95,6 @@ jobs:
         libsndfile \
         gettext \
         jpeg \
-        lcms2 \
         freetype \
         fontconfig \
         cairo \
@@ -125,9 +123,12 @@ jobs:
           -DENABLE_OPENJPEG=OFF \
           -DENABLE_LIBOPENJPEG=none \
           -DENABLE_DCTDECODER=none \
+          -DENABLE_LCMS=OFF \
           -DENABLE_CAIRO=ON \
           -DPNG_LIBRARY="/opt/homebrew/lib/libpng.dylib" \
           -DPNG_PNG_INCLUDE_DIR="/opt/homebrew/include" \
+          -DLCMS2_LIBRARY="/opt/homebrew/lib/liblcms2.dylib" \
+          -DLCMS2_INCLUDE_DIR="/opt/homebrew/include" \
           -DCMAKE_PREFIX_PATH="/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
         cmake --build /tmp/poppler-build -j4
@@ -147,9 +148,12 @@ jobs:
           -DENABLE_OPENJPEG=OFF \
           -DENABLE_LIBOPENJPEG=none \
           -DENABLE_DCTDECODER=none \
+          -DENABLE_LCMS=OFF \
           -DENABLE_CAIRO=ON \
           -DPNG_LIBRARY="/usr/local/lib/libpng.dylib" \
           -DPNG_PNG_INCLUDE_DIR="/usr/local/include" \
+          -DLCMS2_LIBRARY="/usr/local/lib/liblcms2.dylib" \
+          -DLCMS2_INCLUDE_DIR="/usr/local/include" \
           -DCMAKE_PREFIX_PATH="/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install-x86_64
         arch -x86_64 cmake --build /tmp/poppler-build-x86_64 -j4
