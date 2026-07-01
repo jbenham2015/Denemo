@@ -168,7 +168,7 @@ RESOURCES="${APP_DIR}/Contents/Resources"
 # Detect installed Guile version (handles 3.0, future 3.2, etc.)
 GUILE_VER=$(ls "${HOMEBREW_PREFIX}/share/guile/" | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -1)
 echo "=== Bundling Guile ${GUILE_VER} ==="
--
+
 # 1. Scheme source tree (ice-9/, srfi/, system/, …)
 mkdir -p "${RESOURCES}/share/guile/${GUILE_VER}"
 cp -R "${HOMEBREW_PREFIX}/share/guile/${GUILE_VER}/" \
