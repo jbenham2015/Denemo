@@ -131,7 +131,7 @@ jobs:
           -DPNG_PNG_INCLUDE_DIR="/opt/homebrew/include" \
           -DLCMS2_LIBRARY="/opt/homebrew/lib/liblcms2.dylib" \
           -DLCMS2_INCLUDE_DIR="/opt/homebrew/include" \
-          -DCMAKE_PREFIX_PATH="/usr/local" \
+          -DCMAKE_PREFIX_PATH="/opt/homebrew" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
         cmake --build /tmp/poppler-build -j4
         cmake --install /tmp/poppler-build
