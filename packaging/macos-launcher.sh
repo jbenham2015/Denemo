@@ -35,9 +35,14 @@ export PATH="${LILY_DIR}/bin:${LILY_DIR}/libexec:${BUNDLE}/Contents/MacOS:${PATH
 
 # ── Guile (from bundled LilyPond, shared with Denemo) ─────────────────────────
 GUILE_VER="3.0"
-export GUILE_LOAD_PATH="${LILY_DIR}/share/guile/${GUILE_VER}"
-export GUILE_LOAD_COMPILED_PATH="${LILY_DIR}/lib/guile/${GUILE_VER}/ccache"
-export GUILE_SYSTEM_EXTENSIONS_PATH="${LILY_DIR}/lib/guile/${GUILE_VER}/extensions"
+export GUILE_LOAD_PATH="\
+${RESOURCES}/share/guile/${GUILE_VER}:\
+${RESOURCES}/share/guile/site/${GUILE_VER}:\
+${RESOURCES}/share/lilypond/${LILY_VER}/scm"
+export GUILE_LOAD_COMPILED_PATH="\
+${RESOURCES}/lib/guile/${GUILE_VER}/ccache:\
+${RESOURCES}/lib/guile/${GUILE_VER}/site-ccache"
+export GUILE_SYSTEM_EXTENSIONS_PATH="${RESOURCES}/lib/guile/${GUILE_VER}/extensions"
 
 # ── Evince Backend ────────────────────────────────────────────────────────────
 export EV_BACKENDS_DIR="${BUNDLE}/Contents/lib/evince/4/backends"
