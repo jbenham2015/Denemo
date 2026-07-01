@@ -70,8 +70,6 @@ jobs:
         rm -f /usr/local/bin/python3-config /usr/local/bin/python3.14-config
         rm -f /usr/local/bin/pydoc3 /usr/local/bin/pydoc3.14
         rm -f /usr/local/bin/2to3 /usr/local/bin/2to3-3.14
-    - name: Check poppler version
-      run: brew info poppler
     - name: Install x86_64 build dependencies via Rosetta
       run: |
         export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
@@ -109,10 +107,11 @@ jobs:
         test -f /usr/local/opt/expat/lib/pkgconfig/expat.pc   && echo "expat OK"   || echo "ERROR: expat missing"
         test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
         test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
-    - name: Build minimal poppler
+    - name: Build minimal poppler (arm64)
       run: |
         brew install cmake
-        git clone --depth 1 --branch poppler-24.12.0 \
+        rm -rf /tmp/poppler-build /tmp/poppler-build-x86_64 /tmp/poppler
+        git clone --depth 1 --branch poppler-26.06.0 \
         https://gitlab.freedesktop.org/poppler/poppler.git /tmp/poppler
         cmake -S /tmp/poppler -B /tmp/poppler-build \
           -DENABLE_QT5=OFF \
@@ -127,6 +126,8 @@ jobs:
           -DENABLE_LIBOPENJPEG=none \
           -DENABLE_DCTDECODER=none \
           -DENABLE_CAIRO=ON \
+          -DPNG_LIBRARY="/opt/homebrew/lib/libpng.dylib" \
+          -DPNG_PNG_INCLUDE_DIR="/opt/homebrew/include" \
           -DCMAKE_PREFIX_PATH="/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
         cmake --build /tmp/poppler-build -j4
@@ -147,6 +148,8 @@ jobs:
           -DENABLE_LIBOPENJPEG=none \
           -DENABLE_DCTDECODER=none \
           -DENABLE_CAIRO=ON \
+          -DPNG_LIBRARY="/usr/local/lib/libpng.dylib" \
+          -DPNG_PNG_INCLUDE_DIR="/usr/local/include" \
           -DCMAKE_PREFIX_PATH="/usr/local" \
           -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install-x86_64
         arch -x86_64 cmake --build /tmp/poppler-build-x86_64 -j4
