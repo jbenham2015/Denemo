@@ -159,7 +159,54 @@ if [ -d "${LOCALE_DIR}" ]; then
         cp "$mo" "${APP_DIR}/Contents/Resources/share/locale/${lang}/LC_MESSAGES/"
     done
 fi
-# -- 5b. Bundle LilyPond
+
+# 5a. bundle Evince
+# Copy Guile's Scheme source and compiled boot files into the bundle.
+# Without ice-9/boot-9 (and friends) Guile aborts before main() even runs.
+RESOURCES="${APP_DIR}/Contents/Resources"
+
+# Detect installed Guile version (handles 3.0, future 3.2, etc.)
+GUILE_VER=$(ls "${HOMEBREW_PREFIX}/share/guile/" | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -1)
+echo "=== Bundling Guile ${GUILE_VER} ==="
+-
+# 1. Scheme source tree (ice-9/, srfi/, system/, …)
+mkdir -p "${RESOURCES}/share/guile/${GUILE_VER}"
+cp -R "${HOMEBREW_PREFIX}/share/guile/${GUILE_VER}/" \
+      "${RESOURCES}/share/guile/${GUILE_VER}/"
+
+# 2. Site directory (may be empty but must exist)
+mkdir -p "${RESOURCES}/share/guile/site/${GUILE_VER}"
+if [ -d "${HOMEBREW_PREFIX}/share/guile/site/${GUILE_VER}" ]; then
+  cp -R "${HOMEBREW_PREFIX}/share/guile/site/${GUILE_VER}/" \
+        "${RESOURCES}/share/guile/site/${GUILE_VER}/"
+fi
+
+# 3. Pre-compiled .go cache (speeds startup)
+mkdir -p "${RESOURCES}/lib/guile/${GUILE_VER}/ccache"
+if [ -d "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/ccache" ]; then
+  cp -R "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/ccache/" \
+        "${RESOURCES}/lib/guile/${GUILE_VER}/ccache/"
+fi
+
+# 4. Site compiled cache (usually empty; must exist for the env var to be valid)
+mkdir -p "${RESOURCES}/lib/guile/${GUILE_VER}/site-ccache"
+if [ -d "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/site-ccache" ]; then
+  cp -R "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/site-ccache/" \
+        "${RESOURCES}/lib/guile/${GUILE_VER}/site-ccache/"
+fi
+
+# 5. Extensions (.so plugins Guile loads at runtime)
+mkdir -p "${RESOURCES}/lib/guile/${GUILE_VER}/extensions"
+if [ -d "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/extensions" ]; then
+  cp -R "${HOMEBREW_PREFIX}/lib/guile/${GUILE_VER}/extensions/" \
+        "${RESOURCES}/lib/guile/${GUILE_VER}/extensions/"
+fi
+
+echo "=== Guile bundle contents ==="
+du -sh "${RESOURCES}/share/guile/" 2>/dev/null
+du -sh "${RESOURCES}/lib/guile/"   2>/dev/null
+
+# -- 5c. Bundle LilyPond
 # ── Bundle official LilyPond release (includes gs in libexec/) ───────────────
 # Download and extract ARM64 build
 ARM_TARBALL="lilypond-${LILY_VERSION}-darwin-arm64.tar.gz"

@@ -265,8 +265,6 @@ init_environment()
 
 //end of windows only init
 #elif __APPLE__
-/* ── Font debug block - remove after fixing ───────────────────── */
-
 
   GList* dirs = NULL;
   dirs = g_list_append(dirs, g_build_filename (PACKAGE_SOURCE_DIR, COMMANDS_DIR, NULL));
