@@ -310,11 +310,11 @@ cp "${INTEL}/"*.evince-backend "${BACKENDS_DIR}/"
 chmod 644 "${BACKENDS_DIR}/"*.evince-backend
 
 # --- Step 2: Rewrite hardcoded Cellar paths in each .so ---
-# Convention: @loader_path/../../libs/ points to Contents/libs/
-#             @loader_path/../../lib/libevdocument3.4.dylib for evince's own lib
+# Convention: @loader_path/../../../../libs/ points to Contents/libs/
+#             @loader_path/../../../../libs/libevdocument3.4.dylib for evince's own lib
 
-RPATH="@loader_path/../../libs"
-EVINCE_LIB="@loader_path/../../libs/libevdocument3.4.dylib"
+RPATH="@loader_path/../../../../libs"
+EVINCE_LIB="@loader_path/../../../../libs/libevdocument3.4.dylib"
 
 rewrite() {
     local SO="$1"
