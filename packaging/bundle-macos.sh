@@ -397,6 +397,26 @@ install_name_tool -id "@executable_path/../libs/libpoppler.161.dylib" \
 install_name_tool -change "@rpath/libpoppler.161.dylib" \
     "@executable_path/../libs/libpoppler.161.dylib" \
     "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+# Rewrite libpoppler-glib absolute dependency paths
+for OLD_PATH in \
+    "/usr/local/opt/cairo/lib/libcairo.2.dylib" \
+    "/opt/homebrew/opt/cairo/lib/libcairo.2.dylib" \
+    "/usr/local/opt/freetype/lib/libfreetype.6.dylib" \
+    "/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib" \
+    "/usr/local/opt/glib/lib/libgio-2.0.0.dylib" \
+    "/opt/homebrew/opt/glib/lib/libgio-2.0.0.dylib" \
+    "/usr/local/opt/glib/lib/libgobject-2.0.0.dylib" \
+    "/opt/homebrew/opt/glib/lib/libgobject-2.0.0.dylib" \
+    "/usr/local/opt/glib/lib/libglib-2.0.0.dylib" \
+    "/opt/homebrew/opt/glib/lib/libglib-2.0.0.dylib" \
+    "/usr/local/opt/gettext/lib/libintl.8.dylib" \
+    "/opt/homebrew/opt/gettext/lib/libintl.8.dylib"
+do
+    LIBNAME=$(basename "${OLD_PATH}")
+    install_name_tool -change "${OLD_PATH}" \
+        "@executable_path/../libs/${LIBNAME}" \
+        "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+done
 codesign --force --sign - "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
 codesign --force --sign - "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
 # ── 8. Bundle GDK pixbuf loaders ─────────────────────────────────────────────
