@@ -12,9 +12,9 @@ if [ -z "$BUNDLE" ]; then
 fi
 RESOURCES="${BUNDLE}/Contents/Resources"
 LIBS="${BUNDLE}/Contents/libs"
-# ── Dylibs ────────────────────────────────────────────────────────────────────
-export DYLD_LIBRARY_PATH="${LIBS}:${DYLD_LIBRARY_PATH:-}"
-
+## ── Dylibs ────────────────────────────────────────────────────────────────────
+#export DYLD_LIBRARY_PATH="${LIBS}:${DYLD_LIBRARY_PATH:-}"
+# instead of doing this we need to run otool to figure out which libs have absolute paths and which have relative. Then use the install tool to correct their expected path
 # ── GTK / GDK ─────────────────────────────────────────────────────────────────
 export XDG_DATA_DIRS="${RESOURCES}/share:/usr/local/share:/usr/share"
 export GSETTINGS_SCHEMA_DIR="${RESOURCES}/share/glib-2.0/schemas:${GSETTINGS_SCHEMA_DIR:-}"
