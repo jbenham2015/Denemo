@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-14
     # ── Job-level env: silence Homebrew hints globally ───────────────────────
     # Without these, keg-only packages (expat, libxml2, guile, …) print
     # advisory messages that cause brew to exit 1 in GitHub Actions.
