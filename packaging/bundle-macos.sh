@@ -418,7 +418,21 @@ do
         "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
 done
 codesign --force --sign - "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
-codesign --force --sign - "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
+# Rewrite libpoppler.161 absolute dependency paths
+for OLD_PATH in \
+    "/usr/local/opt/freetype/lib/libfreetype.6.dylib" \
+    "/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib" \
+    "/usr/local/opt/fontconfig/lib/libfontconfig.1.dylib" \
+    "/opt/homebrew/opt/fontconfig/lib/libfontconfig.1.dylib" \
+    "/usr/local/opt/libpng/lib/libpng16.16.dylib" \
+    "/opt/homebrew/opt/libpng/lib/libpng16.16.dylib"
+do
+    LIBNAME=$(basename "${OLD_PATH}")
+    install_name_tool -change "${OLD_PATH}" \
+        "@executable_path/../libs/${LIBNAME}" \
+        "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
+done
+codesign --force --sign - "${LIBS_DIR}/libpoppler.161.dylib"
 # ── 8. Bundle GDK pixbuf loaders ─────────────────────────────────────────────
 # GTK needs pixbuf loaders to render images; copy and update the cache.
 
