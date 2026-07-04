@@ -118,7 +118,11 @@ jobs:
         test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
         test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
 
-    # ── autotools (once, using ARM64 tools) ─────────────────────────────────
+    - name: Check poppler version
+      run: |
+        ls /usr/local/opt/poppler/lib/libpoppler*.dylib 2>/dev/null || echo "no x86 poppler"
+        ls /opt/homebrew/opt/poppler/lib/libpoppler*.dylib 2>/dev/null || echo "no arm poppler"
+        # ── autotools (once, using ARM64 tools) ─────────────────────────────────
     - name: Run autotools
       run: |
         export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
