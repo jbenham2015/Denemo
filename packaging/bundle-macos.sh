@@ -346,7 +346,8 @@ for SO in "${BACKENDS_DIR}/"*.so; do
 
     # Backend-specific deps — bundle these too if not already present
     rewrite "$SO" "/usr/local/opt/poppler/lib/libpoppler-glib.8.dylib"      "/opt/homebrew/opt/poppler/lib/libpoppler-glib.8.dylib"      "${RPATH}/libpoppler-glib.8.dylib"
-    rewrite "$SO" "@rpath/libpoppler.161.dylib" "@rpath/libpoppler.161.dylib" "${RPATH}/libpoppler.161.dylib"
+    rewrite "$SO" "@rpath/libpoppler.161.dylib" "@rpath/libpoppler.161.dylib" "${RPATH}/libpoppler.dylib"
+    rewrite "$SO" "@rpath/libpoppler.162.dylib" "@rpath/libpoppler.162.dylib" "${RPATH}/libpoppler.dylib"
     rewrite "$SO" "/usr/local/opt/djvulibre/lib/libdjvulibre.21.dylib"      "/opt/homebrew/opt/djvulibre/lib/libdjvulibre.21.dylib"      "${RPATH}/libdjvulibre.21.dylib"
     rewrite "$SO" "/usr/local/opt/libarchive/lib/libarchive.13.dylib"       "/opt/homebrew/opt/libarchive/lib/libarchive.13.dylib"       "${RPATH}/libarchive.13.dylib"
     rewrite "$SO" "/usr/local/opt/libtiff/lib/libtiff.6.dylib"              "/opt/homebrew/opt/libtiff/lib/libtiff.6.dylib"              "${RPATH}/libtiff.6.dylib"
@@ -359,7 +360,7 @@ done
 # --- Step 3: Bundle the backend-specific libs if not already present ---
 for LIB in \
     "poppler/lib/libpoppler-glib.8.dylib" \
-    "poppler/lib/libpoppler.161.dylib" \
+    "poppler/lib/libpoppler.dylib" \
     "djvulibre/lib/libdjvulibre.21.dylib" \
     "libarchive/lib/libarchive.13.dylib" \
     "libtiff/lib/libtiff.6.dylib" \
@@ -391,11 +392,8 @@ done
 # Fix install names for poppler libs
 install_name_tool -id "@executable_path/../libs/libpoppler-glib.8.dylib" \
     "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
-install_name_tool -id "@executable_path/../libs/libpoppler.161.dylib" \
-    "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
-install_name_tool -change "@rpath/libpoppler.161.dylib" \
-    "@executable_path/../libs/libpoppler.161.dylib" \
-    "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+install_name_tool -id "@executable_path/../libs/libpoppler.dylib" \
+    "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
 # Rewrite libpoppler-glib absolute dependency paths
 for OLD_PATH in \
     "/usr/local/opt/cairo/lib/libcairo.2.dylib" \
@@ -429,9 +427,12 @@ do
     LIBNAME=$(basename "${OLD_PATH}")
     install_name_tool -change "${OLD_PATH}" \
         "@executable_path/../libs/${LIBNAME}" \
-        "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
+        "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
 done
-codesign --force --sign - "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
+codesign --force --sign - "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
+# Create version symlinks so both arm64 and x86_64 rpath references resolve
+ln -sf libpoppler.dylib "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
+ln -sf libpoppler.dylib "${LIBS_DIR}/libpoppler.162.dylib" 2>/dev/null || true
 # ── 8. Bundle GDK pixbuf loaders ─────────────────────────────────────────────
 # GTK needs pixbuf loaders to render images; copy and update the cache.
 
