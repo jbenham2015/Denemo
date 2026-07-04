@@ -117,14 +117,7 @@ jobs:
         test -f /usr/local/opt/expat/lib/pkgconfig/expat.pc   && echo "expat OK"   || echo "ERROR: expat missing"
         test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
         test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
-    - name: Build minimal Evince (arm64)
-      run: |
-        /opt/homebrew/bin/brew install --build-from-source --verbose evince
-    - name: Build minimal Evince (x86_64)
-      run: |
-        /usr/local/bin/brew install --build-from-source evince
- 
- 
+
     # ── autotools (once, using ARM64 tools) ─────────────────────────────────
     - name: Run autotools
       run: |
