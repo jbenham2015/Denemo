@@ -43,7 +43,7 @@ jobs:
           fluid-synth \
           rubberband \
           libsndfile \
-          jpeg \
+          jpeg-turbo \
           freetype \
           poppler \
           fontconfig \
@@ -100,7 +100,7 @@ jobs:
         rubberband \
         libsndfile \
         gettext \
-        jpeg \
+        jpeg-turbo \
         freetype \
         fontconfig \
         cairo \
