@@ -45,9 +45,15 @@ jobs:
           libsndfile \
           jpeg \
           freetype \
+          poppler \
           fontconfig \
           cairo \
-          gettext || true
+          nss \
+          nspr \
+          gpgme \
+          gpgmepp \
+          gettext \
+          evince || true
 
     # ── Rosetta / x86_64 Homebrew setup ─────────────────────────────────────
     - name: Install Rosetta 2
@@ -98,71 +104,19 @@ jobs:
         freetype \
         fontconfig \
         cairo \
-        fontconfig || true
+        poppler \
+        nss \
+        nspr \
+        gpgme \
+        gpgmepp \
+        fontconfig \
+        evince || true
 
         # Verify the packages that actually matter for configure are present
         echo "=== Checking critical keg-only packages ==="
         test -f /usr/local/opt/expat/lib/pkgconfig/expat.pc   && echo "expat OK"   || echo "ERROR: expat missing"
         test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
         test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
-
-    - name: Build minimal poppler (arm64)
-      run: |
-        brew install cmake
-        rm -rf /tmp/poppler-build /tmp/poppler-build-x86_64 /tmp/poppler
-        git clone --depth 1 --branch poppler-26.06.0 \
-        https://gitlab.freedesktop.org/poppler/poppler.git /tmp/poppler
-        cmake -S /tmp/poppler -B /tmp/poppler-build \
-          -DENABLE_QT5=OFF \
-          -DENABLE_QT6=OFF \
-          -DENABLE_NSS3=OFF \
-          -DENABLE_GPGME=OFF \
-          -DENABLE_LIBCURL=OFF \
-          -DENABLE_LIBTIFF=OFF \
-          -DENABLE_LIBJPEG=OFF \
-          -DENABLE_BOOST=OFF \
-          -DENABLE_OPENJPEG=OFF \
-          -DENABLE_LIBOPENJPEG=none \
-          -DENABLE_DCTDECODER=none \
-          -DENABLE_LCMS=OFF \
-          -DENABLE_CAIRO=ON \
-          -DCMAKE_SHARED_LINKER_FLAGS="-L/opt/homebrew/lib" \
-          -DCMAKE_EXE_LINKER_FLAGS="-L/opt/homebrew/lib" \
-          -DPNG_LIBRARY="/opt/homebrew/lib/libpng.dylib" \
-          -DPNG_PNG_INCLUDE_DIR="/opt/homebrew/include" \
-          -DLCMS2_LIBRARY="/opt/homebrew/lib/liblcms2.dylib" \
-          -DLCMS2_INCLUDE_DIR="/opt/homebrew/include" \
-          -DCMAKE_PREFIX_PATH="/opt/homebrew" \
-          -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install
-        cmake --build /tmp/poppler-build -j4
-        cmake --install /tmp/poppler-build
-
-    - name: Build minimal poppler (x86_64)
-      run: |
-        arch -x86_64 /usr/local/bin/cmake -S /tmp/poppler -B /tmp/poppler-build-x86_64 \
-          -DENABLE_QT5=OFF \
-          -DENABLE_QT6=OFF \
-          -DENABLE_NSS3=OFF \
-          -DENABLE_GPGME=OFF \
-          -DENABLE_LIBCURL=OFF \
-          -DENABLE_LIBTIFF=OFF \
-          -DENABLE_LIBJPEG=OFF \
-          -DENABLE_BOOST=OFF \
-          -DENABLE_OPENJPEG=OFF \
-          -DENABLE_LIBOPENJPEG=none \
-          -DENABLE_DCTDECODER=none \
-          -DENABLE_LCMS=OFF \
-          -DENABLE_CAIRO=ON \
-          -DPNG_LIBRARY="/usr/local/lib/libpng.dylib" \
-          -DPNG_PNG_INCLUDE_DIR="/usr/local/include" \
-          -DLCMS2_LIBRARY="/usr/local/lib/liblcms2.dylib" \
-          -DLCMS2_INCLUDE_DIR="/usr/local/include" \
-          -DCMAKE_PREFIX_PATH="/usr/local" \
-          -DCMAKE_SHARED_LINKER_FLAGS="-L/usr/local/lib" \
-          -DCMAKE_EXE_LINKER_FLAGS="-L/usr/local/lib" \
-          -DCMAKE_INSTALL_PREFIX=/tmp/poppler-install-x86_64
-        arch -x86_64 /usr/local/bin/cmake --build /tmp/poppler-build-x86_64 -j4
-        cmake --install /tmp/poppler-build-x86_64
     - name: Build minimal Evince (arm64)
       run: |
         /opt/homebrew/bin/brew install --build-from-source --verbose evince
