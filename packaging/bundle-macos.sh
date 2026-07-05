@@ -429,7 +429,43 @@ do
         "@executable_path/../libs/${LIBNAME}" \
         "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
 done
+# Rewrite libpoppler.dylib absolute dependency paths
+for OLD_PATH in \
+    "/usr/local/opt/jpeg-turbo/lib/libjpeg.8.dylib" \
+    "/opt/homebrew/opt/jpeg-turbo/lib/libjpeg.8.dylib" \
+    "/usr/local/opt/gpgmepp/lib/libgpgmepp.7.dylib" \
+    "/opt/homebrew/opt/gpgmepp/lib/libgpgmepp.7.dylib" \
+    "/usr/local/opt/openjpeg/lib/libopenjp2.7.dylib" \
+    "/opt/homebrew/opt/openjpeg/lib/libopenjp2.7.dylib" \
+    "/usr/local/opt/little-cms2/lib/liblcms2.2.dylib" \
+    "/opt/homebrew/opt/little-cms2/lib/liblcms2.2.dylib" \
+    "/usr/local/opt/libtiff/lib/libtiff.6.dylib" \
+    "/opt/homebrew/opt/libtiff/lib/libtiff.6.dylib" \
+    "/usr/local/opt/nss/lib/libnss3.dylib" \
+    "/opt/homebrew/opt/nss/lib/libnss3.dylib" \
+    "/usr/local/opt/nss/lib/libnssutil3.dylib" \
+    "/opt/homebrew/opt/nss/lib/libnssutil3.dylib" \
+    "/usr/local/opt/nss/lib/libsmime3.dylib" \
+    "/opt/homebrew/opt/nss/lib/libsmime3.dylib" \
+    "/usr/local/opt/nss/lib/libssl3.dylib" \
+    "/opt/homebrew/opt/nss/lib/libssl3.dylib" \
+    "/usr/local/opt/nspr/lib/libplds4.dylib" \
+    "/opt/homebrew/opt/nspr/lib/libplds4.dylib" \
+    "/usr/local/opt/nspr/lib/libplc4.dylib" \
+    "/opt/homebrew/opt/nspr/lib/libplc4.dylib" \
+    "/usr/local/opt/nspr/lib/libnspr4.dylib" \
+    "/opt/homebrew/opt/nspr/lib/libnspr4.dylib" \
+    "/usr/local/opt/gpgme/lib/libgpgme.45.dylib" \
+    "/opt/homebrew/opt/gpgme/lib/libgpgme.45.dylib"
+do
+    LIBNAME=$(basename "${OLD_PATH}")
+    install_name_tool -change "${OLD_PATH}" \
+        "@executable_path/../libs/${LIBNAME}" \
+        "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
+done
 codesign --force --sign - "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
+codesign --force --sign - "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
+codesign --force --sign - "${LIBS_DIR}/libpoppler.162.dylib" 2>/dev/null || true
 # Create version symlinks so both arm64 and x86_64 rpath references resolve
 ln -sf libpoppler.dylib "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
 ln -sf libpoppler.dylib "${LIBS_DIR}/libpoppler.162.dylib" 2>/dev/null || true
