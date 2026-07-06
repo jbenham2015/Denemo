@@ -380,7 +380,8 @@ for LIB in \
     "little-cms2/lib/liblcms2.2.dylib" \
     "libassuan/lib/libassuan.9.dylib" \
     "libgpg-error/lib/libgpg-error.0.dylib" \
-    "zstd/lib/libzstd.1.dylib"
+    "zstd/lib/libzstd.1.dylib" \
+    "xz/lib/liblzma.5.dylib" 
 do
     LIBNAME=$(basename "$LIB")
     if [ ! -f "${LIBS_DIR}/${LIBNAME}" ]; then
