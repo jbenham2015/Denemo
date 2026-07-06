@@ -44,6 +44,7 @@ jobs:
           rubberband \
           libsndfile \
           jpeg-turbo \
+          openjepg \
           freetype \
           poppler \
           fontconfig \
@@ -101,6 +102,7 @@ jobs:
         libsndfile \
         gettext \
         jpeg-turbo \
+        openjpeg \
         freetype \
         fontconfig \
         cairo \

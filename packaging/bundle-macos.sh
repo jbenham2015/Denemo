@@ -359,6 +359,7 @@ done
 
 # --- Step 3: Bundle the backend-specific libs if not already present ---
 for LIB in \
+    "openjpeg/lib/libopenjp2.7.dylib" \
     "poppler/lib/libpoppler-glib.8.dylib" \
     "poppler/lib/libpoppler.dylib" \
     "djvulibre/lib/libdjvulibre.21.dylib" \
