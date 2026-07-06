@@ -55,7 +55,20 @@ jobs:
           gpgmepp \
           gettext \
           evince || true
-
+    - name: Debug portmidi install (ARM64)
+      run: |
+        export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+        echo "---- brew --prefix portmidi ----"
+        brew --prefix portmidi
+        echo "---- include dir ----"
+        ls -la "$(brew --prefix portmidi)/include" || true
+        echo "---- lib dir ----"
+        ls -la "$(brew --prefix portmidi)/lib" || true
+        echo "---- is it keg-only? ----"
+        brew info portmidi
+        echo "---- symlinked into main prefix? ----"
+        ls -la /opt/homebrew/include/portmidi.h || true
+        ls -la /opt/homebrew/lib/libportmidi* || true
     # ── Rosetta / x86_64 Homebrew setup ─────────────────────────────────────
     - name: Install Rosetta 2
       run: softwareupdate --install-rosetta --agree-to-license
@@ -146,15 +159,12 @@ jobs:
     - name: Configure (ARM64)
       run: |
         export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-        # expat and libxml2 are keg-only on ARM64 Homebrew too
         export PKG_CONFIG_PATH="\
           /opt/homebrew/opt/expat/lib/pkgconfig:\
           /opt/homebrew/opt/libxml2/lib/pkgconfig:\
           /opt/homebrew/opt/portmidi/lib/pkgconfig:\
           /opt/homebrew/lib/pkgconfig:\
           /opt/homebrew/share/pkgconfig"
-        export LDFLAGS="-L/opt/homebrew/opt/expat/lib -L/opt/homebrew/opt/libxml2/lib"
-        export CPPFLAGS="-I/opt/homebrew/opt/expat/include -I/opt/homebrew/opt/libxml2/include"
         mkdir -p _build_arm64
         cd _build_arm64
         ../configure --prefix=/opt/homebrew \
@@ -166,7 +176,8 @@ jobs:
           CFLAGS="-arch arm64 -D_MACH_O_" \
           CXXFLAGS="-arch arm64" \
           LDFLAGS="-arch arm64 -L/opt/homebrew/opt/expat/lib -L/opt/homebrew/opt/libxml2/lib -L/opt/homebrew/opt/portmidi/lib" \
-          CPPFLAGS="-I/opt/homebrew/opt/expat/include -I/opt/homebrew/opt/libxml2/include -I/opt/homebrew/opt/portmidi/include"
+          CPPFLAGS="-I/opt/homebrew/opt/expat/include -I/opt/homebrew/opt/libxml2/include -I/opt/homebrew/opt/portmidi/include" \
+        || (echo "==== config.log tail ====" && tail -n 150 config.log && exit 1)
 
     - name: Make (ARM64)
       run: |
