@@ -186,8 +186,6 @@ jobs:
           /usr/local/opt/portmidi/lib/pkgconfig:\
           /usr/local/lib/pkgconfig:\
           /usr/local/share/pkgconfig"
-        export LDFLAGS="-L/usr/local/opt/expat/lib -L/usr/local/opt/libxml2/lib -L/usr/local/opt/portmidi/lib"
-        export CPPFLAGS="-I/usr/local/opt/expat/include -I/usr/local/opt/libxml2/include -I/usr/local/opt/portmidi/include"
         mkdir -p _build_x86_64
         cd _build_x86_64
         arch -x86_64 ../configure --prefix=/usr/local \
@@ -200,8 +198,8 @@ jobs:
           CXX="clang++ -arch x86_64" \
           CFLAGS="-arch x86_64 -D_MACH_O_" \
           CXXFLAGS="-arch x86_64" \
-          LDFLAGS="-arch x86_64 -L/usr/local/opt/expat/lib -L/usr/local/opt/libxml2/lib" \
-          CPPFLAGS="-I/usr/local/opt/expat/include -I/usr/local/opt/libxml2/include" \
+          LDFLAGS="-arch x86_64 -L/usr/local/opt/expat/lib -L/usr/local/opt/libxml2/lib -L/usr/local/opt/portmidi/lib" \
+          CPPFLAGS="-I/usr/local/opt/expat/include -I/usr/local/opt/libxml2/include -I/usr/local/opt/portmidi/include"                                                                    
           PKG_CONFIG=/usr/local/bin/pkg-config
 
     - name: Make (x86_64)
