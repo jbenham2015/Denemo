@@ -150,6 +150,7 @@ jobs:
         export PKG_CONFIG_PATH="\
           /opt/homebrew/opt/expat/lib/pkgconfig:\
           /opt/homebrew/opt/libxml2/lib/pkgconfig:\
+          /opt/homebrew/opt/portmidi/lib/pkgconfig:\
           /opt/homebrew/lib/pkgconfig:\
           /opt/homebrew/share/pkgconfig"
         export LDFLAGS="-L/opt/homebrew/opt/expat/lib -L/opt/homebrew/opt/libxml2/lib"
@@ -164,8 +165,8 @@ jobs:
           --enable-evince \
           CFLAGS="-arch arm64 -D_MACH_O_" \
           CXXFLAGS="-arch arm64" \
-          LDFLAGS="-arch arm64 -L/opt/homebrew/opt/expat/lib -L/opt/homebrew/opt/libxml2/lib" \
-          CPPFLAGS="-I/opt/homebrew/opt/expat/include -I/opt/homebrew/opt/libxml2/include"
+          LDFLAGS="-arch arm64 -L/opt/homebrew/opt/expat/lib -L/opt/homebrew/opt/libxml2/lib -L/opt/homebrew/opt/portmidi/lib" \
+          CPPFLAGS="-I/opt/homebrew/opt/expat/include -I/opt/homebrew/opt/libxml2/include -I/opt/homebrew/opt/portmidi/include"
 
     - name: Make (ARM64)
       run: |
@@ -182,10 +183,11 @@ jobs:
         export PKG_CONFIG_PATH="\
           /usr/local/opt/expat/lib/pkgconfig:\
           /usr/local/opt/libxml2/lib/pkgconfig:\
+          /usr/local/opt/portmidi/lib/pkgconfig:\
           /usr/local/lib/pkgconfig:\
           /usr/local/share/pkgconfig"
-        export LDFLAGS="-L/usr/local/opt/expat/lib -L/usr/local/opt/libxml2/lib"
-        export CPPFLAGS="-I/usr/local/opt/expat/include -I/usr/local/opt/libxml2/include"
+        export LDFLAGS="-L/usr/local/opt/expat/lib -L/usr/local/opt/libxml2/lib -L/usr/local/opt/portmidi/lib"
+        export CPPFLAGS="-I/usr/local/opt/expat/include -I/usr/local/opt/libxml2/include -I/usr/local/opt/portmidi/include"
         mkdir -p _build_x86_64
         cd _build_x86_64
         arch -x86_64 ../configure --prefix=/usr/local \
