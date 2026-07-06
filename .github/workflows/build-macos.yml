@@ -58,7 +58,7 @@ jobs:
           gpgmepp \
           gettext \
           evince \
-          liblzma \
+          xz \
           zstd
 
     - name: Verify ARM64 dependencies actually installed
@@ -141,7 +141,7 @@ jobs:
         gpgmepp \
         fontconfig \
         evince \
-        liblzma \
+        xz \
         zstd || true
 
         # Verify the packages that actually matter for configure are present
