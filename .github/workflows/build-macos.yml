@@ -125,6 +125,17 @@ jobs:
         ls /usr/local/opt/poppler/lib/libpoppler*.dylib 2>/dev/null || echo "no x86 poppler"
         ls /opt/homebrew/opt/poppler/lib/libpoppler*.dylib 2>/dev/null || echo "no arm poppler"
         # ── autotools (once, using ARM64 tools) ─────────────────────────────────
+    - name: Install XML::Parser for intltool
+      run: |
+        export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+        # Verify XML::Parser is available for the perl intltool will use
+        if ! /opt/homebrew/bin/perl -MXML::Parser -e 1 2>/dev/null; then
+            echo "XML::Parser not found, installing via cpan..."
+            echo | /opt/homebrew/bin/cpan XML::Parser
+        else
+            echo "XML::Parser OK"
+        fi
+
     - name: Run autotools
       run: |
         export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
