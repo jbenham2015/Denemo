@@ -392,6 +392,10 @@ done
 # Fix install names for poppler libs
 install_name_tool -id "@executable_path/../libs/libpoppler-glib.8.dylib" \
     "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+install_name_tool -delete_rpath "@loader_path/../lib" \
+    "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+install_name_tool -add_rpath "@executable_path/../libs" \
+    "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
 install_name_tool -id "@executable_path/../libs/libpoppler.dylib" \
     "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
 # Rewrite libpoppler-glib absolute dependency paths
