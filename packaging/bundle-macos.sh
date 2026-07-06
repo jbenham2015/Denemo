@@ -378,7 +378,8 @@ for LIB in \
     "nspr/lib/libplc4.dylib" \
     "nspr/lib/libnspr4.dylib" \
     "little-cms2/lib/liblcms2.2.dylib" \
-    "libassuan/lib/libassuan.9.dylib"
+    "libassuan/lib/libassuan.9.dylib" \
+    "libgpg-error/lib/libgpg-error.0.dylib"
 do
     LIBNAME=$(basename "$LIB")
     if [ ! -f "${LIBS_DIR}/${LIBNAME}" ]; then
