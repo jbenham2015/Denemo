@@ -44,7 +44,7 @@ jobs:
           rubberband \
           libsndfile \
           jpeg-turbo \
-          openjepg \
+          openjpeg \
           freetype \
           poppler \
           fontconfig \
@@ -54,7 +54,14 @@ jobs:
           gpgme \
           gpgmepp \
           gettext \
-          evince || true
+          evince
+
+    - name: Verify ARM64 dependencies actually installed
+      run: |
+        for pkg in portmidi portaudio fftw librsvg fluid-synth; do
+          brew --prefix "$pkg" >/dev/null 2>&1 || { echo "::error::$pkg is not installed"; exit 1; }
+        done
+
     - name: Debug portmidi install (ARM64)
       run: |
         export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
