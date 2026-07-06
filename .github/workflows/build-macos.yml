@@ -45,6 +45,7 @@ jobs:
           libsndfile \
           jpeg-turbo \
           openjpeg \
+          little-cms2 \
           freetype \
           poppler \
           fontconfig \
@@ -123,6 +124,7 @@ jobs:
         gettext \
         jpeg-turbo \
         openjpeg \
+        little-cms2 \
         freetype \
         fontconfig \
         cairo \
