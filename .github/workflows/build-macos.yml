@@ -57,7 +57,8 @@ jobs:
           gpgme \
           gpgmepp \
           gettext \
-          evince
+          evince \
+          zstd
 
     - name: Verify ARM64 dependencies actually installed
       run: |
@@ -138,7 +139,8 @@ jobs:
         gpgme \
         gpgmepp \
         fontconfig \
-        evince || true
+        evince \
+        zstd || true
 
         # Verify the packages that actually matter for configure are present
         echo "=== Checking critical keg-only packages ==="
