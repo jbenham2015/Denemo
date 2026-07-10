@@ -107,23 +107,46 @@ extern "C" {
 
 #ifdef FAKE_TOOLTIPS
 extern gchar *format_tooltip (const gchar*);
+extern gboolean denemo_using_wayland (void);
+/* The fake-tooltip popup relies on X11-only positioning semantics and
+ * renders blank (visible box, no text) under Wayland's xdg_popup protocol.
+ * Skip the fake-tooltip path on Wayland and use GTK's real tooltip
+ * mechanism there instead, which handles Wayland correctly on its own. */
+#define DENEMO_USE_FAKE_TOOLTIPS (Denemo.prefs.tooltip_timeout >= 0 && !denemo_using_wayland ())
 #define FAKE_TOOLTIPS_MASK GDK_POINTER_MOTION_MASK  //GDK_ENTER_NOTIFY_MASK
 #define FAKE_TOOLTIPS_SIGNAL "motion-notify-event" //""enter-notify-event" 
 
-#define gtk_widget_set_tooltip_markup(w, t) (Denemo.prefs.tooltip_timeout >= 0)?g_object_set_data(G_OBJECT(w), "tooltip", format_tooltip(t)), \
-    gtk_widget_add_events (w, FAKE_TOOLTIPS_MASK), \
-    g_signal_connect_after (w, "destroy", G_CALLBACK(free_tooltip), format_tooltip(t)), \
-    g_signal_connect (w, FAKE_TOOLTIPS_SIGNAL, G_CALLBACK (show_tooltip), format_tooltip(t)): \
+/* format_tooltip(t) allocates a new string. It must be called exactly ONCE
+ * per widget and the single resulting pointer shared between the qdata
+ * slot and the two signal callbacks, with free_tooltip() as the single
+ * owner that frees it on "destroy". Calling format_tooltip(t) three times
+ * (the old behaviour) allocated three separate strings but only ever freed
+ * one of them -- the qdata copy and the show_tooltip copy leaked on every
+ * single tooltip-bearing widget for the lifetime of the fake-tooltips
+ * feature, which given how widely gtk_widget_set_tooltip_* is used across
+ * the codebase was the single largest source of leaked memory in the app. */
+#define gtk_widget_set_tooltip_markup(w, t) (DENEMO_USE_FAKE_TOOLTIPS)? \
+    ({ gchar *_tt = format_tooltip(t); \
+       g_object_set_data (G_OBJECT(w), "tooltip", _tt); \
+       gtk_widget_add_events (w, FAKE_TOOLTIPS_MASK); \
+       g_signal_connect_after (w, "destroy", G_CALLBACK(free_tooltip), _tt); \
+       g_signal_connect (w, FAKE_TOOLTIPS_SIGNAL, G_CALLBACK (show_tooltip), _tt); \
+       (void)0; \
+    }) : \
     gtk_widget_set_tooltip_markup(w, t)
     
     
-#define gtk_widget_set_tooltip_text(w, t) (Denemo.prefs.tooltip_timeout >= 0)?g_object_set_data(G_OBJECT(w), "tooltip", format_tooltip(t)), \
-    gtk_widget_add_events (w, FAKE_TOOLTIPS_MASK), \
-    g_signal_connect_after (w, "destroy", G_CALLBACK(free_tooltip), format_tooltip(t)), \
-    g_signal_connect (w, FAKE_TOOLTIPS_SIGNAL, G_CALLBACK (show_tooltip), format_tooltip(t)): \
-    gtk_widget_set_tooltip_markup(w, t)
+#define gtk_widget_set_tooltip_text(w, t) (DENEMO_USE_FAKE_TOOLTIPS)? \
+    ({ gchar *_tt = format_tooltip(t); \
+       g_object_set_data (G_OBJECT(w), "tooltip", _tt); \
+       gtk_widget_add_events (w, FAKE_TOOLTIPS_MASK); \
+       g_signal_connect_after (w, "destroy", G_CALLBACK(free_tooltip), _tt); \
+       g_signal_connect (w, FAKE_TOOLTIPS_SIGNAL, G_CALLBACK (show_tooltip), _tt); \
+       (void)0; \
+    }) : \
+    gtk_widget_set_tooltip_text(w, t)
 
-#define gtk_widget_get_tooltip_text(w) ((Denemo.prefs.tooltip_timeout >= 0)? \
+#define gtk_widget_get_tooltip_text(w) ((DENEMO_USE_FAKE_TOOLTIPS)? \
     (gchar*)g_object_get_data (G_OBJECT(w), "tooltip"): \
     gtk_widget_get_tooltip_text(w))
 

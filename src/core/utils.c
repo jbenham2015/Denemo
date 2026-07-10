@@ -13,6 +13,9 @@
 #include <fontconfig/fontconfig.h>
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#ifdef GDK_WINDOWING_WAYLAND
+#include <gdk/gdkwayland.h>
+#endif
 #include <glib.h>
 #include <glib/gstdio.h> //for g_remove. Use GFile instead?
 #include <stdlib.h>
@@ -3270,6 +3273,29 @@ use_markup (GtkWidget * widget)
 static GtkWidget *TooltipPopup = NULL;
 static guint hide_tooltip_timeout_id = 0;
 
+// The custom fake-tooltip popup is an override-redirect-style window and
+// relies on X11 semantics (an app can position it directly without any
+// compositor involvement). Wayland's xdg_popup protocol requires a valid
+// grab serial and parent surface that this motion-notify-triggered popup
+// does not have, which results in the popup surface being created but its
+// content never being committed/painted -- i.e. a visible box with no
+// text. Rather than fight Wayland's popup-grab semantics under release
+// pressure, we detect Wayland at runtime and fall back to GTK's built-in
+// tooltip mechanism there, which already handles xdg_popup correctly.
+gboolean
+denemo_using_wayland (void)
+{
+#ifdef GDK_WINDOWING_WAYLAND
+  GdkDisplay *display = gdk_display_get_default ();
+  g_print ("DEBUG: GDK_WINDOWING_WAYLAND defined, display type = %s\n",
+           display ? G_OBJECT_TYPE_NAME (display) : "(null)");
+  return display != NULL && GDK_IS_WAYLAND_DISPLAY (display);
+#else
+  g_print ("DEBUG: GDK_WINDOWING_WAYLAND NOT defined at compile time\n");
+  return FALSE;
+#endif
+}
+
 // Hide and destroy the tooltip window
 static void
 hide_tooltip_window (void)
@@ -3374,6 +3400,12 @@ show_tooltip (GtkWidget * w, GdkEvent * ev, gchar * text)
         gtk_window_set_type_hint (GTK_WINDOW (TooltipPopup), GDK_WINDOW_TYPE_HINT_TOOLTIP);
         gtk_window_set_resizable (GTK_WINDOW (TooltipPopup), FALSE);
 
+        // Give the popup a transient parent so Wayland/X11 window managers
+        // can position it properly (fixes "temporary window without parent" warning)
+        GtkWidget *toplevel = gtk_widget_get_toplevel (w);
+        if (GTK_IS_WINDOW (toplevel))
+          gtk_window_set_transient_for (GTK_WINDOW (TooltipPopup), GTK_WINDOW (toplevel));
+
         // Enable visual transparency for rounded corners
         GdkScreen *screen = gtk_widget_get_screen (TooltipPopup);
         GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
@@ -3384,6 +3416,10 @@ show_tooltip (GtkWidget * w, GdkEvent * ev, gchar * text)
         GtkWidget *label = gtk_label_new (text);
         gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
         gtk_label_set_max_width_chars (GTK_LABEL (label), 80);
+        // A line-wrapped label has a natural width of ~0 unless given a
+        // minimum via width-chars, which was causing the popup to size
+        // itself to near-nothing and the text to render invisibly.
+        gtk_label_set_width_chars (GTK_LABEL (label), 20);
         gtk_widget_set_margin_start (label, 8);
         gtk_widget_set_margin_end (label, 8);
         gtk_widget_set_margin_top (label, 6);
