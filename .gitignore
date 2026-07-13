@@ -61,3 +61,24 @@ patch_denemo_evince.sh
 # Build m4 files
 build/*.m4
 build/lt~obsolete.m4
+
+# Compiled object files and binaries
+*.o
+*.lo
+*.a
+*.la
+src/denemo
+src/libaudiobackend.a
+libs/**/*.a
+
+# Compiled tool binaries (built from tracked .c sources in tools/)
+tools/annotator
+tools/cairo_svg2path
+tools/pageswitcher
+tools/pageturner
+tools/twopageturner
+org.denemo.Denemo.metainfo.xml
+*.diff
+valgrind-*.txt
+gen-supp.txt
+po/.intltool-merge-cache
