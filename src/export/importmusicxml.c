@@ -327,6 +327,13 @@ add_note (gint octave, gchar * step, gint alter)
   return g_string_free (ret, FALSE);
 }
 
+static gchar *
+add_unpitched_note (xmlNodePtr note_elem)
+{
+  /* TODO: percussion import. For now, discard unpitched/drum notes silently. */
+  return g_strdup ("");
+}
+
 static void
 get_numstaffs_from_note (xmlNodePtr rootElem, gint * maxstaffs, gint * maxvoices)
 {
@@ -732,7 +739,8 @@ parse_note (xmlNodePtr rootElem, GString ** scripts, gint * staff_for_voice, gin
   if (type)
     {
 
-      g_string_append (text, in_chord ? add_note (octave, step, alter) : ((is_rest ||!step)? add_rest (type, duration, divisions) : insert_note (type, octave, step, alter)));
+      g_string_append (text, in_chord ? (step ? add_note (octave, step, alter) : add_unpitched_note (rootElem)) : ((is_rest ||!step)? add_rest (type, duration, divisions) : insert_note (type, octave, step, alter)));
+//TODO add more percussion support later
 
       if (is_nonprinting)
         g_string_append (text, "(d-SetNonprinting)");
