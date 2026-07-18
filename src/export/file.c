@@ -1181,6 +1181,10 @@ template_save (G_GNUC_UNUSED DenemoAction * action, G_GNUC_UNUSED DenemoScriptPa
   init_local_path ();
   default_template_path = local_template_path;
   Denemo.project->total_edit_time = 0;
+  if (Denemo.project->printhistory==NULL)
+        Denemo.project->printhistory = g_string_new("");
+  else
+    g_string_assign (Denemo.project->printhistory, "");
   file_saveas (SAVE_TEMPLATE);
   g_string_assign (gui->filename, "");
   set_gui_tabname (gui, "");
