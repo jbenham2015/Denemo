@@ -3,8 +3,6 @@
 # Handles macOS/Homebrew, Linux, and other POSIX platforms.
 
 set -e
-echo "Running $LIBTOOLIZE ..."
-$LIBTOOLIZE --force --copy
 
 # ── 1. Locate tools, handling platform differences ────────────────────────────
 
