@@ -1164,7 +1164,13 @@ scheme_append_scheme_text (SCM script)
 SCM
 scheme_get_scheme_text (void)
   {
-  return scm_from_locale_string (get_script_view_text());
+  gchar *text = get_script_view_text ();
+  SCM result = scm_from_locale_string (text);
+  g_free (text);   // get_script_view_text() returns a newly allocated string
+                    // (see its doc comment: "caller must free"); scm_from_locale_string
+                    // copies the bytes into its own Guile-managed string and does not
+                    // take ownership of ours, so we must free it here.
+  return result;
   }
   
 SCM

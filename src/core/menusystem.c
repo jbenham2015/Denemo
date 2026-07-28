@@ -215,6 +215,7 @@ saveMenuItem (GtkWidget * widget, DenemoAction * action)
     }
   else
     warningdialog (_("No script saved"));
+  g_free (scheme);
 }
 /* write scheme script from Denemo.script_view into file init.scm in the user's local menupath.
 */
@@ -239,8 +240,8 @@ put_initialization_script (GtkWidget * widget, gchar * directory)
             {
               warningdialog (_("Could not create init.scm;\n" "you must create your scripted menu item in the menu\n" "before you create the initialization script for it, sorry."));
             }
-          g_free (scheme);
         }
+      g_free (scheme);
     }
 }
 
@@ -321,6 +322,7 @@ insertScript (GtkWidget * widget, gchar * insertion_point)
     }
   else
     warningdialog (_("Operation cancelled"));
+  g_free (myscheme);
   g_free (myposition);
   return;
 }

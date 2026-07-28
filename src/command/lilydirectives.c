@@ -2931,8 +2931,8 @@ put_edit_script (GtkWidget * widget, gchar * tag)
               fclose (fp);
               infodialog (_("Wrote edit script file to ~/.denemo/editscripts"));
             }
-          g_free (scheme);
         }
+      g_free (scheme);
     }
   g_free (tagscm);
   g_free (filename);

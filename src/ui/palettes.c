@@ -223,9 +223,13 @@ static void put_script_for_button (GtkWidget *button) {
     {
     gchar *script = get_script_view_text ();
     gchar *oldscript = (gchar*) g_object_get_data (G_OBJECT(button), "script");
-    g_object_set_data (G_OBJECT(button), "script", script);
     g_signal_handlers_block_by_func(G_OBJECT(button), G_CALLBACK (call_out_to_guile), oldscript);
-    g_free(oldscript);
+    // g_object_set_data_full (rather than g_object_set_data) registers g_free
+    // as the destroy-notify for this qdata slot, so it is freed automatically
+    // both when overwritten again and when the button itself is destroyed --
+    // previously the string leaked whenever a button was destroyed without
+    // its script having been overwritten first.
+    g_object_set_data_full (G_OBJECT(button), "script", script, g_free);
     g_signal_connect_swapped ( G_OBJECT (button), "clicked", G_CALLBACK (call_out_to_guile), script);
     }
     else
