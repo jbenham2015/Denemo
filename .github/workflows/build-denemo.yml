@@ -241,6 +241,8 @@ jobs:
           Copy-Item -Force "D:\a\Denemo\Denemo\COPYING" "$staged\license\denemo"
           Copy-Item -Force "D:\a\Denemo\Denemo\packaging\nsis\Denemo.bat" "$staged\"
           Copy-Item -Force "D:\a\Denemo\Denemo\packaging\regfont.exe" "$staged\bin\"
+          Copy-Item -Force "$mingw\bin\gspawn-win64-helper.exe" "$staged\bin\"
+          Copy-Item -Force "$mingw\bin\gspawn-win64-helper-console.exe" "$staged\bin\"
           Copy-Item -Force "D:\a\Denemo\Denemo\packaging\denemo.ico" "$staged\share\icons\hicolor\denemo.ico"
           Copy-Item -Force "D:\a\Denemo\Denemo\pixmaps\denemo.png" "$staged\share\icons\hicolor\denemo.png"
           Copy-Item -Force "D:\a\Denemo\Denemo\pixmaps\org.denemo.Denemo.png" "$staged\share\icons\hicolor\org.denemo.Denemo.png"
