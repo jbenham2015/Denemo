@@ -4594,7 +4594,7 @@ scheme_select_color (SCM text)
   GList *list;
   if (scm_is_string (text))
     {
-      title = scm_to_utf8_string (msg);
+      title = scm_to_locale_string (title)
     }
   else
     title = strdup (_("Choose Font"));
@@ -4613,7 +4613,7 @@ scheme_warningdialog (SCM msg)
   char *title;
   if (scm_is_string (msg))
     {
-      title = scm_to_locale_string (msg);
+      title = scm_to_utf8_string (msg);
     }
   else
     title = strdup ("Script generated warning");
