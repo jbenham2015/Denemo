@@ -28,7 +28,6 @@ jobs:
             mingw-w64-x86_64-glib2
             mingw-w64-x86_64-gtk3
             mingw-w64-x86_64-libxml2
-            perl-XML-Parser
             mingw-w64-x86_64-portaudio
             mingw-w64-x86_64-fluidsynth
             mingw-w64-x86_64-libsndfile
@@ -48,6 +47,11 @@ jobs:
       - name: Remove MSYS2 Guile to avoid conflict with custom build
         run: |
           pacman -R --noconfirm mingw-w64-x86_64-guile || echo "guile not installed by pacman, skipping"
+
+      - name: Ensure XML::Parser Perl module
+        run: |
+          perl -MCPAN -e "install XML::Parser" || true
+          perl -e "use XML::Parser; print 'XML::Parser installed\n'"
 
       - name: Download deps artifact
         shell: pwsh
