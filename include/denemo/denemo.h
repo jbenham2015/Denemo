@@ -197,6 +197,11 @@ extern gboolean denemo_using_wayland (void);
 #define mswin
 #endif
 
+#ifdef G_OS_WIN32
+#define scm_to_locale_string scm_to_utf8_string
+#define scm_to_locale_stringn scm_to_utf8_stringn
+#endif
+
 extern const gchar *None;
 extern const gchar *Jack;
 extern const gchar *Portaudio;
