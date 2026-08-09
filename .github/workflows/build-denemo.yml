@@ -48,10 +48,15 @@ jobs:
         run: |
           pacman -R --noconfirm mingw-w64-x86_64-guile || echo "guile not installed by pacman, skipping"
 
-      - name: Ensure XML::Parser Perl module
+      - name: Debug Perl and intltool
+        shell: msys2 {0}
         run: |
-          perl -MCPAN -e "install XML::Parser" || true
-          perl -e "use XML::Parser; print 'XML::Parser installed\n'"
+          perl -v | head -5
+          perl -e 'print join("\n", @INC), "\n"'
+          which intltool || echo "intltool not found"
+          ls /mingw64/lib/perl5/site_perl/ 2>/dev/null || echo "site_perl not found"
+          pacman -Q | grep -i perl || echo "No perl packages found"
+          pacman -Q | grep -i xml || echo "No xml packages found"
 
       - name: Download deps artifact
         shell: pwsh
