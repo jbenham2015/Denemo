@@ -28,6 +28,7 @@ jobs:
             mingw-w64-x86_64-glib2
             mingw-w64-x86_64-gtk3
             mingw-w64-x86_64-libxml2
+            mingw-w64-x86_64-perl-xml-parser
             mingw-w64-x86_64-portaudio
             mingw-w64-x86_64-fluidsynth
             mingw-w64-x86_64-libsndfile
