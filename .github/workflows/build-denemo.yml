@@ -43,8 +43,19 @@ jobs:
             mingw-w64-x86_64-gc
             intltool
             mingw-w64-x86_64-nsis
-            perl-XML-Parser
-
+      
+      - name: Build XML::Parser for mingw64 perl
+        shell: msys2 {0}
+        run: |
+        pacman -S --noconfirm mingw-w64-x86_64-expat
+        cd /tmp
+        curl -LO https://cpan.metacpan.org/authors/id/T/TO/TODDR/XML-Parser-2.47.tar.gz
+        tar xzf XML-Parser-2.47.tar.gz
+        cd XML-Parser-2.47
+        /mingw64/bin/perl Makefile.PL EXPATLIBPATH=/mingw64/lib EXPATINCPATH=/mingw64/include
+        make
+        make install
+      
       - name: Disable problematic locale for intltool
         run: |
           # Unset locale variables to prevent intltool from invoking Perl
