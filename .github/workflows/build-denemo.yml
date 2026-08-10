@@ -43,19 +43,9 @@ jobs:
             mingw-w64-x86_64-gc
             intltool
             mingw-w64-x86_64-nsis
+            perl-XML-Parser
       
-      - name: Build XML::Parser for mingw64 perl
-        shell: msys2 {0}
-        run: |
-          pacman -S --noconfirm mingw-w64-x86_64-expat
-          cd /tmp
-          curl -LO https://cpan.metacpan.org/authors/id/T/TO/TODDR/XML-Parser-2.47.tar.gz
-          tar xzf XML-Parser-2.47.tar.gz
-          cd XML-Parser-2.47
-          /mingw64/bin/perl Makefile.PL EXPATLIBPATH=/mingw64/lib EXPATINCPATH=/mingw64/include
-          make
-          make install
-      
+     
       - name: Disable problematic locale for intltool
         run: |
           # Unset locale variables to prevent intltool from invoking Perl
@@ -123,8 +113,9 @@ jobs:
           ./autogen.sh
 
       - name: Configure Denemo
+        shell: msys2 {0}
         run: |
-          export PERL=/usr/bin/perl
+          mv /mingw64/bin/perl /mingw64/bin/perl.bak
           ./configure \
             --prefix=/mingw64 \
             --enable-evince \
@@ -133,6 +124,7 @@ jobs:
             CPPFLAGS="-I/mingw64/include" \
             LDFLAGS="-L/mingw64/lib" \
             PKG_CONFIG_PATH="/mingw64/lib/pkgconfig"
+          mv /mingw64/bin/perl.bak /mingw64/bin/perl
 
       - name: Build Denemo
         run: make -j$(nproc) 2>&1 | tee /d/a/Denemo/Denemo/denemo-build.log
