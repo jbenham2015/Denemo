@@ -44,7 +44,6 @@ jobs:
             intltool
             mingw-w64-x86_64-nsis
             perl-XML-Parser
-            mingw-w64-x86_64-perl-XML-Parser
 
       - name: Disable problematic locale for intltool
         run: |
@@ -114,6 +113,7 @@ jobs:
 
       - name: Configure Denemo
         run: |
+          export PERL=/usr/bin/perl
           ./configure \
             --prefix=/mingw64 \
             --enable-evince \
