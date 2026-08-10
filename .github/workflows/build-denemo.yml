@@ -48,15 +48,22 @@ jobs:
         run: |
           pacman -R --noconfirm mingw-w64-x86_64-guile || echo "guile not installed by pacman, skipping"
 
-      - name: Debug Perl and intltool
+      - name: Fix locale and install intltool
         shell: msys2 {0}
         run: |
-          perl -v | head -5
-          perl -e 'print join("\n", @INC), "\n"'
-          which intltool || echo "intltool not found"
-          ls /mingw64/lib/perl5/site_perl/ 2>/dev/null || echo "site_perl not found"
-          pacman -Q | grep -i perl || echo "No perl packages found"
-          pacman -Q | grep -i xml || echo "No xml packages found"
+          # Set locale to avoid warnings
+          export LANG=C.UTF-8
+          export LC_ALL=C.UTF-8
+          
+          # Update pacman cache
+          pacman -Sy
+          
+          # Install intltool explicitly
+          pacman -S --noconfirm intltool
+          
+          # Verify installation
+          intltool-update --version
+          perl -e "use XML::Parser; print 'XML::Parser OK\n'"
 
       - name: Download deps artifact
         shell: pwsh
