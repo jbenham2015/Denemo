@@ -193,7 +193,7 @@ libevince_print (void)
 
       pause_continuous_typesetting ();
 
-
+      call_out_to_guile ("(InitializePrint)");
       ev_print_operation_run (printop, NULL);
     }
   return 0;
