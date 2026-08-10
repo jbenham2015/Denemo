@@ -44,7 +44,22 @@ jobs:
             mingw-w64-x86_64-gc
             intltool
             mingw-w64-x86_64-nsis
- 
+
+      - name: Fix Perl module paths for intltool
+        run: |
+          # Export PERL5LIB to include the site_perl directory where XML::Parser should be
+          export PERL5LIB="/mingw64/lib/perl5/site_perl:/mingw64/lib/perl5/vendor_perl:/mingw64/lib/perl5/core_perl"
+          echo "PERL5LIB=$PERL5LIB" >> $GITHUB_ENV
+
+          # Verify XML::Parser is accessible
+          perl -e "use XML::Parser; print 'XML::Parser version: ' . \$XML::Parser::VERSION . \"\n\"" || {
+            echo "XML::Parser not found in standard paths, searching..."
+            find /mingw64 -name "Parser.pm" 2>/dev/null || echo "Parser.pm not found"
+          }
+
+          # Test intltool
+          intltool-update --version
+
       - name: Remove MSYS2 Guile to avoid conflict with custom build
         run: |
           pacman -R --noconfirm mingw-w64-x86_64-guile || echo "guile not installed by pacman, skipping"
