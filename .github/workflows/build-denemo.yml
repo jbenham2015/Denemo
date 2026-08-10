@@ -45,6 +45,25 @@ jobs:
             intltool
             mingw-w64-x86_64-nsis
 
+      - name: Disable problematic locale for intltool
+        run: |
+          # Unset locale variables to prevent intltool from invoking Perl
+          unset LANG
+          unset LC_ALL
+          unset LC_CTYPE
+          unset LC_NUMERIC
+          unset LC_COLLATE
+          unset LC_TIME
+          unset LC_MONETARY
+          
+          # Set to C locale which doesn't require UTF-8 support
+          export LANG=C
+          export LC_ALL=C
+          echo "LANG=C" >> $GITHUB_ENV
+          echo "LC_ALL=C" >> $GITHUB_ENV
+          
+          echo "Locale set to: $LANG / $LC_ALL"
+          
       - name: Setup intltool for autoreconf
         run: |
           # Create a minimal intltool wrapper that doesn't rely on Perl module checks
@@ -71,13 +90,13 @@ jobs:
           # Set locale to avoid warnings
           export LANG=C.UTF-8
           export LC_ALL=C.UTF-8
-          
+
           # Update pacman cache
           pacman -Sy
-          
+
           # Install intltool explicitly
           pacman -S --noconfirm intltool
-          
+
           # Verify installation
           intltool-update --version
           perl -e "use XML::Parser; print 'XML::Parser OK\n'"
