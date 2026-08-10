@@ -43,6 +43,7 @@ jobs:
             mingw-w64-x86_64-gc
             intltool
             mingw-w64-x86_64-nsis
+            perl-XML-Parser
 
       - name: Disable problematic locale for intltool
         run: |
