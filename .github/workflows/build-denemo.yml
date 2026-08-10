@@ -28,7 +28,6 @@ jobs:
             mingw-w64-x86_64-glib2
             mingw-w64-x86_64-gtk3
             mingw-w64-x86_64-libxml2
-            perl-XML-Parser
             mingw-w64-x86_64-portaudio
             mingw-w64-x86_64-fluidsynth
             mingw-w64-x86_64-libsndfile
@@ -44,6 +43,7 @@ jobs:
             mingw-w64-x86_64-gc
             intltool
             mingw-w64-x86_64-nsis
+            mingw-w64-x86_64-perl-xml-simple
 
       - name: Disable problematic locale for intltool
         run: |
@@ -125,7 +125,8 @@ jobs:
           guild --version
           guile --version
       - name: Bootstrap Denemo
-        run: autoreconf -fi
+        run: |
+          autoreconf -fi --install --verbose
 
       - name: Configure Denemo
         run: |
