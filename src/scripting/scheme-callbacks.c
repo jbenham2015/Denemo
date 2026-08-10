@@ -304,12 +304,12 @@ scheme_create_palette_button (SCM palette, SCM lbl, SCM tltp, SCM scrp)
 {
   SCM ret;
   gchar *name = scm_to_locale_string (palette);
-  gchar *label = scm_to_locale_string (lbl);
+#undef scm_to_locale_string
+  gchar *label = scm_to_locale_string (lbl);   // button glyph labels use raw byte passthrough for the Feta/Denemo symbol fonts, not real UTF-8
+#define scm_to_locale_string scm_to_utf8_string
   gchar *tooltip = scm_to_locale_string (tltp);
   gchar *script = scm_to_locale_string (scrp);
-
   DenemoPalette *pal = create_palette (name, FALSE, TRUE);
-
   ret = palette_add_button (pal, label, tooltip, script) ? SCM_BOOL_T : SCM_BOOL_F;
   gtk_widget_show (gtk_widget_get_parent (pal->box));
   free (name);
