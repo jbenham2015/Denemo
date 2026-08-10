@@ -108,7 +108,7 @@ jobs:
           guile --version
       - name: Bootstrap Denemo
         run: |
-          autoreconf -fi --install --verbose
+          ./autogen.sh
 
       - name: Configure Denemo
         run: |
