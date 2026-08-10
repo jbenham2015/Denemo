@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Denemo>
   <palette _name="Select Duration" row-wise="1" limit="1" dock="0" hidden="1">
-    <button label="^&#x1D15D;" _tooltip="Selects &#x1D15D; as the duration for inserting notes or rests" script="(d-Set0)"/>
-    <button label="^&#x1D15E;" _tooltip="Selects &#x1D15E; as the duration for inserting notes or rests" script="(d-Set1)"/>
+    <button label="^&lt;span font='denemo 12'&gt;&#x1D15D;&lt;/span&gt;" _tooltip="Selects &#x1D15D; as the duration for inserting notes or rests" script="(d-Set0)"/>
+    <button label="^&lt;span font='denemo 12'&gt;&#x1D15E;&lt;/span&gt;" _tooltip="Selects &#x1D15E; as the duration for inserting notes or rests" script="(d-Set1)"/>
     <button label="^&#x1D15F;" _tooltip="Selects &#x1D15F; as the duration for inserting notes or rests" script="(d-Set2)"/>
     <button label="^&#x1D160;" _tooltip="Selects &#x1D160; as the duration for inserting notes or rests" script="(d-Set3)"/>
     <button label="^&#x1D161;" _tooltip="Selects &#x1D161; as the duration for inserting notes or rests" script="(d-Set4)"/>
