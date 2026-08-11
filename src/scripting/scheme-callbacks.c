@@ -4594,7 +4594,7 @@ scheme_select_color (SCM text)
   GList *list;
   if (scm_is_string (text))
     {
-      title = scm_to_locale_string (title);
+      title = scm_to_locale_string (text);
     }
   else
     title = strdup (_("Choose Font"));
