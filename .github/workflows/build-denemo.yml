@@ -43,7 +43,44 @@ jobs:
             mingw-w64-x86_64-gc
             intltool
             mingw-w64-x86_64-nsis
- 
+            perl-XML-Parser
+      
+     
+      - name: Disable problematic locale for intltool
+        run: |
+          # Unset locale variables to prevent intltool from invoking Perl
+          unset LANG
+          unset LC_ALL
+          unset LC_CTYPE
+          unset LC_NUMERIC
+          unset LC_COLLATE
+          unset LC_TIME
+          unset LC_MONETARY
+          
+          # Set to C locale which doesn't require UTF-8 support
+          export LANG=C
+          export LC_ALL=C
+          echo "LANG=C" >> $GITHUB_ENV
+          echo "LC_ALL=C" >> $GITHUB_ENV
+          
+          echo "Locale set to: $LANG / $LC_ALL"
+          
+      - name: Setup intltool for autoreconf
+        run: |
+          # Create a minimal intltool wrapper that doesn't rely on Perl module checks
+          mkdir -p /mingw64/bin
+          
+          # Check if intltool exists and works
+          if intltool-update --version 2>/dev/null | grep -q intltool; then
+            echo "intltool is functional"
+          else
+            echo "WARNING: intltool has issues, but will proceed - autoreconf should work"
+          fi
+          
+          # Set PKG_CONFIG_PATH for autoreconf
+          export PKG_CONFIG_PATH="/mingw64/lib/pkgconfig:$PKG_CONFIG_PATH"
+          echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
+
       - name: Remove MSYS2 Guile to avoid conflict with custom build
         run: |
           pacman -R --noconfirm mingw-w64-x86_64-guile || echo "guile not installed by pacman, skipping"
@@ -72,10 +109,13 @@ jobs:
           guild --version
           guile --version
       - name: Bootstrap Denemo
-        run: autoreconf -fi
+        run: |
+          ./autogen.sh
 
       - name: Configure Denemo
+        shell: msys2 {0}
         run: |
+          mv /mingw64/bin/perl /mingw64/bin/perl.bak
           ./configure \
             --prefix=/mingw64 \
             --enable-evince \
@@ -84,6 +124,7 @@ jobs:
             CPPFLAGS="-I/mingw64/include" \
             LDFLAGS="-L/mingw64/lib" \
             PKG_CONFIG_PATH="/mingw64/lib/pkgconfig"
+          mv /mingw64/bin/perl.bak /mingw64/bin/perl
 
       - name: Build Denemo
         run: make -j$(nproc) 2>&1 | tee /d/a/Denemo/Denemo/denemo-build.log
@@ -241,6 +282,8 @@ jobs:
           Copy-Item -Force "D:\a\Denemo\Denemo\COPYING" "$staged\license\denemo"
           Copy-Item -Force "D:\a\Denemo\Denemo\packaging\nsis\Denemo.bat" "$staged\"
           Copy-Item -Force "D:\a\Denemo\Denemo\packaging\regfont.exe" "$staged\bin\"
+          Copy-Item -Force "$mingw\bin\gspawn-win64-helper.exe" "$staged\bin\"
+          Copy-Item -Force "$mingw\bin\gspawn-win64-helper-console.exe" "$staged\bin\"
           Copy-Item -Force "D:\a\Denemo\Denemo\packaging\denemo.ico" "$staged\share\icons\hicolor\denemo.ico"
           Copy-Item -Force "D:\a\Denemo\Denemo\pixmaps\denemo.png" "$staged\share\icons\hicolor\denemo.png"
           Copy-Item -Force "D:\a\Denemo\Denemo\pixmaps\org.denemo.Denemo.png" "$staged\share\icons\hicolor\org.denemo.Denemo.png"

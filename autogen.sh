@@ -51,21 +51,16 @@ ACLOCAL_FLAGS="-I build $ACLOCAL_FLAGS $EXTRA_ACLOCAL_FLAGS"
 
 # ── 3. Run the Autotools sequence ─────────────────────────────────────────────
 
-echo "Running aclocal $ACLOCAL_FLAGS ..."
-aclocal $ACLOCAL_FLAGS
-
-echo "Running autoheader ..."
-autoheader
-
 echo "Running $LIBTOOLIZE ..."
 $LIBTOOLIZE --force --copy
-
+echo "Running aclocal $ACLOCAL_FLAGS ..."
+aclocal $ACLOCAL_FLAGS
+echo "Running autoheader ..."
+autoheader
 echo "Running intltoolize ..."
 intltoolize --copy --force --automake
-
 echo "Running automake ..."
 automake --add-missing --gnu --copy
-
 echo "Running autoconf ..."
 autoconf
 

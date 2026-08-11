@@ -68,6 +68,9 @@ for font in DejaVuSans.ttf DejaVuSans-Bold.ttf DejaVuSansMono.ttf; do
 done
 cp regfont.exe "${PKG}/bin/"
 [ -f "${MXE_PREFIX}/bin/update-mime-database.exe" ] && cp "${MXE_PREFIX}/bin/update-mime-database.exe" "${PKG}/bin/" || echo "WARNING: update-mime-database.exe not found, skipping"
+# copy the  helper programs over
+[ -f "${MXE_PREFIX}/bin/gspawn-win64-helper.exe" ] && cp "${MXE_PREFIX}/bin/gspawn-win64-helper.exe" "${PKG}/bin/" || echo "WARNING: gspawn-win64-helper.exe not found, skipping"
+[ -f "${MXE_PREFIX}/bin/gspawn-win64-helper-console.exe" ] && cp "${MXE_PREFIX}/bin/gspawn-win64-helper-console.exe" "${PKG}/bin/" || echo "WARNING: gspawn-win64-helper-console.exe not found, skipping"
 # ------------------------------------------------------------------------------
 # 6. CLEANUP — delegated entirely to clean.sh
 #    All removal logic lives there so it can also be run standalone.

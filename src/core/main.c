@@ -278,33 +278,6 @@ init_environment()
 
   g_setenv ("LILYPOND_VERBOSE", "1", FALSE);
 
-  gchar *fontpath = NULL;
-  fontpath = find_denemo_file(DENEMO_DIR_FONTS, "feta.ttf");
-  g_warning ("find_denemo_file returned: %s", fontpath ? fontpath : "NULL");
-  if(fontpath)
-      add_font_file (fontpath);
-  else
-    g_warning("Did not find feta.ttf - perhaps installed in system");
-  g_free(fontpath);
-
-  fontpath = find_denemo_file(DENEMO_DIR_FONTS,  "Denemo.ttf");
-  g_warning ("DENEMO_DIR_FONTS resolves to: %s",
-		  find_denemo_file (DENEMO_DIR_FONTS, "") ?
-		  find_denemo_file (DENEMO_DIR_FONTS, "") : "NULL");
-
-  if(fontpath)
-    add_font_file (fontpath);
-  else
-    g_info("Did not find Denemo.ttf - perhaps installed in system");
-  g_free(fontpath);
-
-  fontpath = find_denemo_file(DENEMO_DIR_FONTS,  "emmentaler.ttf");
-  if(fontpath)
-     add_font_file (fontpath);
-  else
-    g_info("Did not find emmentaler.ttf - perhaps installed in system");
-  g_free(fontpath);
-
   g_setenv ("LYEDITOR", "denemoclient %(line)s %(column)s", FALSE);
   /* Force Pango to rebuild its CoreText font map so it sees newly registered fonts */
   pango_cairo_font_map_set_default (NULL);
@@ -362,29 +335,7 @@ init_environment()
     g_object_unref (ctx);
     g_setenv ("LILYPOND_VERBOSE", "1", FALSE);
 
-  gchar *fontpath = NULL;
-  fontpath = find_denemo_file(DENEMO_DIR_FONTS, "feta.ttf");
-  if(fontpath)
-      add_font_file (fontpath);
-  else
-    g_info("Did not find feta.ttf - perhaps installed in system");
-  g_free(fontpath);
-
-  fontpath = find_denemo_file(DENEMO_DIR_FONTS,  "Denemo.ttf");
-  if(fontpath)
-    add_font_file (fontpath);
-  else
-    g_info("Did not find Denemo.ttf - perhaps installed in system");
-  g_free(fontpath);
-
-  fontpath = find_denemo_file(DENEMO_DIR_FONTS,  "emmentaler.ttf");
-  if(fontpath)
-     add_font_file (fontpath);
-  else
-    g_info("Did not find emmentaler.ttf - perhaps installed in system");
-  g_free(fontpath);
-
-  g_setenv ("LYEDITOR", "denemoclient %(line)s %(column)s", FALSE);
+    g_setenv ("LYEDITOR", "denemoclient %(line)s %(column)s", FALSE);
 #endif //end Linux/BSD/HURD
 }
 
@@ -519,6 +470,23 @@ main_log_handler(const gchar *log_domain,
     abort();
 }
 
+static void
+load_denemo_fonts (void)
+{
+  gchar *fontpath = NULL;
+  fontpath = find_denemo_file (DENEMO_DIR_FONTS, "feta.ttf");
+  if (fontpath) add_font_file (fontpath);
+  g_free (fontpath);
+
+  fontpath = find_denemo_file (DENEMO_DIR_FONTS, "Denemo.ttf");
+  if (fontpath) add_font_file (fontpath);
+  g_free (fontpath);
+
+  fontpath = find_denemo_file (DENEMO_DIR_FONTS, "emmentaler.ttf");
+  if (fontpath) add_font_file (fontpath);
+  g_free (fontpath);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -526,7 +494,7 @@ main (int argc, char *argv[])
   gboolean gtk_status = FALSE;
 
   g_log_set_default_handler (main_log_handler, NULL);
-
+  load_denemo_fonts ();
   if(!(gtk_status = gtk_init_check (&argc, &argv)))
     g_message(_("Could not start graphical interface."));
 

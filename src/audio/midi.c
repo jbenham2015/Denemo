@@ -414,16 +414,24 @@ do_one_note (gint mid_c_offset, gint enshift, gint notenum)
     {
       DenemoObject *curobj = NULL;
       //check for non-printing notes - back up to the first non-printing note.
+      static gboolean filling_in_notes = FALSE;//if we have been filling in yellow notes make a noise if we are now appending real ones
       gboolean non_printing_note = FALSE;
       PushPosition (NULL, NULL);
+
+      if (filling_in_notes && Denemo.project->movement->cursor_appending)
+					{
+						call_out_to_guile ("(d-PlayMidiNote 66 255 9 100)(d-PlayMidiNote 78 255 9 100)");
+						filling_in_notes = FALSE;
+					}       
       while (cursor_to_prev_note ())
         {
           curobj = Denemo.project->movement->currentobject->data;
           if (!curobj->isinvisible)
             break;
           else
-            non_printing_note = TRUE;
+            non_printing_note = TRUE, filling_in_notes = TRUE;
         }
+   
       if (Denemo.project->movement->currentobject)
         {
           curobj = Denemo.project->movement->currentobject->data;
@@ -434,10 +442,10 @@ do_one_note (gint mid_c_offset, gint enshift, gint notenum)
               (void)pop_position ();//Discard the pushed position
             }
           else
-            PopPosition (NULL, NULL);// go to where we started, as there are no non-printing notes
+				PopPosition (NULL, NULL);// go to where we started, as there are no non-printing notes
         }
-       else
-            PopPosition (NULL, NULL);// go to where we started, as there are no non-printing notes
+      else
+         PopPosition (NULL, NULL);// go to where we started, as there are no non-printing notes
       action_note_into_score (mid_c_offset, enshift, notenum);
 
       if (Denemo.keyboard_state & ADDING_MASK)
