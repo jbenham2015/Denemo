@@ -29,6 +29,28 @@ static gint *OttavaVals;
 static GString *Warnings;
 static GString *awaiting_note;//anything that has to wait for a note to be added
 static gboolean pending_tuplet_end = FALSE;//to catch tuplets that end and re-start with the same value
+
+/* Holds the instrument/part names found in <part-list>, keyed by the
+ * <score-part id="..."> attribute, so that when we later meet the
+ * corresponding <part id="..."> element (which has no name of its own)
+ * we can look up what it should be called. */
+typedef struct
+{
+  gchar *name;                 //from <part-name>
+  gchar *abbreviation;         //from <part-abbreviation>
+} PartNameInfo;
+
+static GHashTable *PartNames = NULL;
+
+static void
+free_part_name_info (gpointer data)
+{
+  PartNameInfo *info = (PartNameInfo *) data;
+  g_free (info->name);
+  g_free (info->abbreviation);
+  g_free (info);
+}
+
 /* Defines for making traversing XML trees easier */
 
 #define FOREACH_CHILD_ELEM(childElem, parentElem) \
@@ -1159,8 +1181,50 @@ parse_measure (xmlNodePtr rootElem, GString ** scripts, gint * staff_for_voice, 
   return g_string_free (ret, FALSE);
 }
 
+static xmlNodePtr getXMLChild (xmlNodePtr parentElem, gchar * childElemName);
+static void replace_quotes (gchar *str);
+
+/**
+ * Parse the <part-list> element of a MusicXML score, extracting the
+ * <part-name>/<part-abbreviation> given for each <score-part id="..."/>
+ * and storing them (keyed by that id) in PartNames, ready to be looked
+ * up when the matching <part id="..."> element with the actual music
+ * is encountered.
+ */
+static void
+parse_part_list (xmlNodePtr rootElem)
+{
+  xmlNodePtr childElem;
+  if (PartNames == NULL)
+    PartNames = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, free_part_name_info);
+
+  FOREACH_CHILD_ELEM (childElem, rootElem)
+  {
+    if (ELEM_NAME_EQ (childElem, "score-part"))
+      {
+        gchar *id = (gchar *) xmlGetProp (childElem, (xmlChar *) "id");
+        if (id)
+          {
+            xmlNodePtr nameElem = getXMLChild (childElem, "part-name");
+            xmlNodePtr abbrevElem = getXMLChild (childElem, "part-abbreviation");
+            PartNameInfo *info = g_new0 (PartNameInfo, 1);
+            if (nameElem)
+              info->name = (gchar *) xmlNodeListGetString (nameElem->doc, nameElem->children, 1);
+            if (abbrevElem)
+              info->abbreviation = (gchar *) xmlNodeListGetString (abbrevElem->doc, abbrevElem->children, 1);
+            if (info->name)
+              replace_quotes (info->name);
+            if (info->abbreviation)
+              replace_quotes (info->abbreviation);
+            g_hash_table_insert (PartNames, g_strdup (id), info);
+            xmlFree (id);
+          }
+      }
+  }
+}
+
 static gchar *
-parse_part (xmlNodePtr rootElem)
+parse_part (xmlNodePtr rootElem, const gchar * part_id)
 {
   GString *warnings = g_string_new ("");
   gint i, j;
@@ -1208,6 +1272,23 @@ parse_part (xmlNodePtr rootElem)
   for (i = 0; i < numvoices; i++)
     {                           //g_assert(staff_for_voice[i]>0);
       numvoices_for_staff[staff_for_voice[i] - 1]++;
+    }
+
+/* Attach the instrument/staff name (from <part-list>) to the first staff of
+ * this part, while we are still positioned on it and before any further
+ * staffs/voices for this part are added. */
+  if (part_id && PartNames)
+    {
+      PartNameInfo *info = (PartNameInfo *) g_hash_table_lookup (PartNames, part_id);
+      if (info)
+        {
+          if (info->name && *info->name)
+            g_string_append_printf (scripts[0], "(d-InstrumentName \"%s\")", escape_scheme (info->name));
+          if (info->abbreviation && *info->abbreviation)
+            g_string_append_printf (scripts[0], "(d-StaffProperties \"denemo_name=%s\")", escape_scheme (info->abbreviation));
+          else if (info->name && *info->name)
+            g_string_append_printf (scripts[0], "(d-StaffProperties \"denemo_name=%s\")", escape_scheme (info->name));
+        }
     }
 
 /* create script to make enough staffs and voices, we are already in staff 1 voice 1 */
@@ -1568,8 +1649,22 @@ mxmlinput (gchar * filename)
     Warnings = g_string_new ("");
   else
     g_string_assign (Warnings, "");
+  if (PartNames != NULL)
+    {
+      g_hash_table_destroy (PartNames);
+      PartNames = NULL;
+    }
+  /* <part-list> can in principle appear anywhere among the top-level
+   * children, but MusicXML always puts it before the <part> elements it
+   * describes, so a single pass over the children (parsing part-list as
+   * soon as we meet it) is enough to have the names ready by the time we
+   * reach the corresponding <part> elements below. */
   FOREACH_CHILD_ELEM (childElem, rootElem)
   {
+	    if (ELEM_NAME_EQ (childElem, "part-list"))
+        {
+            parse_part_list (childElem);
+        }
 	    if (ELEM_NAME_EQ (childElem, "work"))
         {
 			xmlNodePtr wtElem = getXMLChild (childElem, "work-title");
@@ -1604,10 +1699,18 @@ mxmlinput (gchar * filename)
     }
     if (ELEM_NAME_EQ (childElem, "part"))
       {
+        gchar *id = (gchar *) xmlGetProp (childElem, (xmlChar *) "id");
         g_string_append_printf (script, "\n;;-------------------------Part (ie Instrument) %d ----------------------\n", part_count++);
-        g_string_append (script, parse_part (childElem));
+        g_string_append (script, parse_part (childElem, id));
+        if (id)
+          xmlFree (id);
       }
   }
+  if (PartNames != NULL)
+    {
+      g_hash_table_destroy (PartNames);
+      PartNames = NULL;
+    }
   g_string_append (script, 
   "  (d-DeleteStaff)(d-MoveToEnd)(if (None?) (d-DeleteMeasureAllStaffs))\n\
   (d-SetPrefs \"<spillover>0</spillover>\")    \n\
