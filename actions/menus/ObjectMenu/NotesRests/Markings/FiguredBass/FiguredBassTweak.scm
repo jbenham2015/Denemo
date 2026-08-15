@@ -1,5 +1,6 @@
 (let ((tag "FiguredBassTweak"))
 (d-DirectivePut-score-prefix tag 
+(string-append 
 "#(define-public (format-bass-figures figure event context)
   (let* ((fig (ly:event-property event 'figure))
          (fig-markup (if (number? figure)
@@ -30,7 +31,14 @@
                    ;-2 2 ;; is the default
                     (if (not fig-markup) 0 -2) 4 ;; changed
                  )
-               (alteration->text-accidental-markup alt))
+                 
+ "
+ (if (d-CheckLilyVersion "2.26.0")
+"                               (accidental->text-markup alt))"
+"                               (alt (ly:event-property event 'alteration))")
+"                
+               
+               
               #f))
 
          (plus-markup (if (eq? #t (ly:event-property event 'augmented))
@@ -83,5 +91,5 @@
     figuredBassPlusDirection = #RIGHT
     \\override BassFigure.font-features = #'(\"tnum\" \"ss01\")
   }
-} "))
+} ")))
 (d-SetSaved #f)
