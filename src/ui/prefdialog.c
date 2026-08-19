@@ -498,6 +498,12 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   gtk_box_pack_start (GTK_BOX (hbox), field, TRUE, TRUE, 0);\
   cbdata.field = field;
 
+#define FILEENTRY(label, field, use_folder_chooser) \
+  /* build label + GtkEntry bound to Denemo.prefs.field, same as TEXTENTRY, \
+     but pack a GtkButton("Browse...") after it that opens a \
+     GtkFileChooserDialog (ACTION_OPEN or ACTION_SELECT_FOLDER per use_folder_chooser) \
+     and on ACCEPT, sets the GtkEntry's text to the chosen path */
+
 #define PASSWORDENTRY(thelabel, field) \
   hbox = gtk_hbox_new (FALSE, 8);\
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
@@ -628,8 +634,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
    * External (Helper) Programs
    */
   NEWPAGE (_("Externals"));
-
-  TEXTENTRY (_("Path to Lilypond"), lilypath)
+  FILEENTRY (_("Path to Lilypond"), lilypath, FALSE)
   TEXTENTRY (_("File/Internet Browser"), browser)
   TEXTENTRY (_("Image Viewer"), imageviewer)
   TEXTENTRY (_("Graphics Editor"), graphicseditor)
