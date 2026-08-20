@@ -35,13 +35,6 @@
 #endif
 
 
-#if GTK_MAJOR_VERSION==2
-#define gtk_combo_box_text_new_with_entry gtk_combo_box_new_text
-#define gtk_combo_box_text_append_text gtk_combo_box_append_text
-#define gtk_combo_box_text_get_active_text gtk_combo_box_get_active_text
-#define GTK_COMBO_BOX_TEXT GTK_COMBO_BOX
-#endif
-
 struct callbackdata
 {
   DenemoPrefs *prefs;
@@ -241,7 +234,6 @@ set_preferences (struct callbackdata *cbdata)
   ASSIGNTEXT (graphicseditor)
   ASSIGNTEXT (ghostscript)
   ASSIGNTEXT (username)
-  //ASSIGNTEXT (password)
   ASSIGNTEXT (profile)
   ASSIGNTEXT (fontname)
   ASSIGNINT (fontsize)
@@ -402,8 +394,8 @@ browse_for_path_cb (GtkButton * button, gpointer entry_widget)
       action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? _("Select Folder") : _("Select File"),
       NULL,
       action,
-      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-      action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? GTK_STOCK_APPLY : GTK_STOCK_OPEN,
+      _("_Cancel"), GTK_RESPONSE_CANCEL,
+      action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? _("_Apply") : _("_Open"),
       GTK_RESPONSE_ACCEPT,
       NULL);
 
@@ -432,11 +424,6 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   GtkWidget *main_vbox;
   GtkWidget *autosave;
   GtkWidget *autosave_timeout;
-
-  // GtkWidget *tooltip_timeout;
-  //   GtkWidget *tooltip_browse_timeout;
-  //    GtkWidget *tooltip_browse_mode_timeout;
- // GtkWidget *maxhistory;
   GtkWidget *notebook;
   GtkWidget *hbox;
 #ifdef _HAVE_JACK_
@@ -497,7 +484,6 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
 
   dialog = gtk_dialog_new_with_buttons (_("Preferences - Denemo"), GTK_WINDOW (Denemo.window), (GtkDialogFlags) (GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT), _("_OK"), GTK_RESPONSE_ACCEPT, _("_Cancel"), GTK_RESPONSE_REJECT, NULL);
 
-  //gtk_dialog_set_has_separator (GTK_DIALOG (dialog), FALSE);
   GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
   GtkWidget *warning_message = gtk_label_new ("");
   use_markup (warning_message);
@@ -508,7 +494,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
 #define VBOX main_vbox
 
 #define NEWPAGE(thelabel) \
-    main_vbox = gtk_vbox_new (FALSE, 1);\
+    main_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 1);\
     gtk_notebook_append_page (GTK_NOTEBOOK (notebook), main_vbox, NULL);\
     gtk_notebook_set_tab_label_text (GTK_NOTEBOOK (notebook), main_vbox, thelabel);
 
@@ -521,10 +507,11 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   cbdata.field = field;
 
 #define TEXTENTRY(thelabel, field) \
-  hbox = gtk_hbox_new (FALSE, 8);\
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);\
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
   label = gtk_label_new (thelabel);\
-  gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);\
+  gtk_label_set_xalign (GTK_LABEL (label), 1.0);\
+  gtk_label_set_yalign (GTK_LABEL (label), 0.5);\
   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);\
   GtkWidget *field = gtk_entry_new ();\
   gtk_entry_set_text (GTK_ENTRY (field), Denemo.prefs.field->str);\
@@ -534,10 +521,11 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
 /* Base macro: identical to TEXTENTRY but adds a Browse... button that
    opens a file/folder chooser and writes the result back into the entry. */
 #define PATHENTRY(thelabel, field, action) \
-  hbox = gtk_hbox_new (FALSE, 8);\
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);\
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
   label = gtk_label_new (thelabel);\
-  gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);\
+  gtk_label_set_xalign (GTK_LABEL (label), 1.0);\
+  gtk_label_set_yalign (GTK_LABEL (label), 0.5);\
   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);\
   GtkWidget *field = gtk_entry_new ();\
   gtk_entry_set_text (GTK_ENTRY (field), Denemo.prefs.field->str);\
@@ -555,10 +543,11 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   PATHENTRY (thelabel, field, GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER)
 
 #define PASSWORDENTRY(thelabel, field) \
-  hbox = gtk_hbox_new (FALSE, 8);\
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);\
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
   label = gtk_label_new (thelabel);\
-  gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);\
+  gtk_label_set_xalign (GTK_LABEL (label), 1.0);\
+  gtk_label_set_yalign (GTK_LABEL (label), 0.5);\
   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);\
   GtkWidget *field = gtk_entry_new ();\
   gtk_entry_set_visibility(GTK_ENTRY(field), FALSE);\
@@ -568,10 +557,11 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   cbdata.field = field;
 
 #define INTENTRY(thelabel, field) \
-  hbox = gtk_hbox_new (FALSE, 8);\
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);\
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
   label = gtk_label_new (thelabel);\
-  gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);\
+  gtk_label_set_xalign (GTK_LABEL (label), 1.0);\
+  gtk_label_set_yalign (GTK_LABEL (label), 0.5);\
   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);\
   field = gtk_spin_button_new_with_range (1, 50, 1.0);\
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (field), Denemo.prefs.field);\
@@ -579,10 +569,11 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   cbdata.field = field;
 
 #define ENTRY_LIMITS(thelabel, field, min, max, step)   \
-  hbox = gtk_hbox_new (FALSE, 8);\
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);\
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
   label = gtk_label_new (thelabel);\
-  gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);\
+  gtk_label_set_xalign (GTK_LABEL (label), 1.0);\
+  gtk_label_set_yalign (GTK_LABEL (label), 0.5);\
   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);\
   GtkWidget *field = gtk_spin_button_new_with_range (min, max, step);\
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (field), Denemo.prefs.field);\
@@ -594,7 +585,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
 #define DOUBLEENTRY_LIMITS  ENTRY_LIMITS
 
 #define BUTTON(thelabel, field, thecallback, data) \
-  hbox = gtk_hbox_new (FALSE, 8);\
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);\
   gtk_box_pack_start (GTK_BOX (vbox1), hbox, FALSE, FALSE, 0);\
   GtkWidget *field = gtk_button_new_with_label(thelabel);\
   gtk_box_pack_start (GTK_BOX (vbox1), field, FALSE, FALSE, 0);\
@@ -612,27 +603,22 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
  }
 
 #define COMBOBOX(thelabel, field, thelist, settext, editable)\
-  hbox = gtk_hbox_new (FALSE, 8);\
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);\
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
   label = gtk_label_new (thelabel);\
-  gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);\
+  gtk_label_set_xalign (GTK_LABEL (label), 1.0);\
+  gtk_label_set_yalign (GTK_LABEL (label), 0.5);\
   gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);\
-  hbox = gtk_hbox_new (FALSE, 8);\
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);\
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
-  CBOX(thelable, field, thelist, settext)\
+  CBOX(thelabel, field, thelist, settext)\
   gtk_box_pack_start (GTK_BOX (hbox), field, FALSE, FALSE, 0);\
   gtk_widget_show (field);\
   cbdata.field = field;
 
-#if GTK_MAJOR_VERSION == 2
 #define SEPARATOR()\
-  separator = gtk_hseparator_new();\
+  separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);\
   gtk_box_pack_start (GTK_BOX (VBOX), separator, FALSE, TRUE, 4);
-#else
-#define SEPARATOR()\
-  separator = gtk_separator_new(GTK_ORIENTATION_HORIZONTAL);\
-  gtk_box_pack_start (GTK_BOX (VBOX), separator, FALSE, TRUE, 4);
-#endif
   /*
    * Note entry settings
    */
@@ -728,7 +714,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   //PASSWORDENTRY (_("Password for Denemo.org"), password)
   BOOLEANENTRY (_("Create Parts Layouts"), saveparts);
 
-  hbox = gtk_hbox_new (FALSE, 8);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
   gtk_box_pack_start (GTK_BOX (main_vbox), hbox, FALSE, TRUE, 0);
   autosave = gtk_check_button_new_with_label (_("Autosave every"));
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (autosave), Denemo.prefs.autosave);
@@ -781,7 +767,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
 
 #undef VBOX
 #define VBOX jack_audio_settings
-  jack_audio_settings = gtk_vbox_new (FALSE, 1);
+  jack_audio_settings = gtk_box_new (GTK_ORIENTATION_VERTICAL, 1);
   gtk_box_pack_start (GTK_BOX (main_vbox), jack_audio_settings, FALSE, TRUE, 0);
 
   GList *jack_audio_output_ports = get_jack_ports (FALSE, FALSE);
@@ -801,7 +787,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
 
 #undef VBOX
 #define VBOX portaudio_settings
-  portaudio_settings = gtk_vbox_new (FALSE, 1);
+  portaudio_settings = gtk_box_new (GTK_ORIENTATION_VERTICAL, 1);
   gtk_box_pack_start (GTK_BOX (main_vbox), portaudio_settings, FALSE, TRUE, 0);
 
   GList *devices = get_portaudio_devices ();
@@ -838,7 +824,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
 
 #undef VBOX
 #define VBOX jack_midi_settings
-  jack_midi_settings = gtk_vbox_new (FALSE, 1);
+  jack_midi_settings = gtk_box_new (GTK_ORIENTATION_VERTICAL, 1);
   gtk_box_pack_start (GTK_BOX (main_vbox), jack_midi_settings, FALSE, TRUE, 0);
 
   GList *jack_midi_input_ports = get_jack_ports (TRUE, FALSE);
@@ -860,7 +846,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
 
 #undef VBOX
 #define VBOX portmidi_settings
-  portmidi_settings = gtk_vbox_new (FALSE, 1);
+  portmidi_settings = gtk_box_new (GTK_ORIENTATION_VERTICAL, 1);
   gtk_box_pack_start (GTK_BOX (main_vbox), portmidi_settings, FALSE, TRUE, 0);
 
   GList *input_devices = get_portmidi_devices (FALSE);
@@ -881,7 +867,7 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   /*
    * FluidSynth settings
    */
-  TEXTENTRY (_("Soundfont"), fluidsynth_soundfont) hbox = gtk_hbox_new (FALSE, 8);
+  TEXTENTRY (_("Soundfont"), fluidsynth_soundfont) hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
   gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);
   GtkWidget *button = gtk_button_new_with_label (_("Choose Soundfont"));
   gtk_box_pack_start (GTK_BOX (hbox), button, FALSE, FALSE, 0);
