@@ -498,11 +498,60 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   gtk_box_pack_start (GTK_BOX (hbox), field, TRUE, TRUE, 0);\
   cbdata.field = field;
 
-#define FILEENTRY(label, field, use_folder_chooser) \
-  /* build label + GtkEntry bound to Denemo.prefs.field, same as TEXTENTRY, \
-     but pack a GtkButton("Browse...") after it that opens a \
-     GtkFileChooserDialog (ACTION_OPEN or ACTION_SELECT_FOLDER per use_folder_chooser) \
-     and on ACCEPT, sets the GtkEntry's text to the chosen path */
+/* Generic callback: works for both file and folder pickers, since the
+   action is baked into the dialog before this runs. entry_widget is the
+   GtkEntry passed as user_data via g_signal_connect. */
+static void
+browse_for_path_cb (GtkButton * button, gpointer entry_widget)
+{
+  GtkWidget *entry = GTK_WIDGET (entry_widget);
+  GtkFileChooserAction action =
+    (GtkFileChooserAction) GPOINTER_TO_INT (g_object_get_data (G_OBJECT (button), "chooser-action"));
+
+  GtkWidget *dialog = gtk_file_chooser_dialog_new (
+      action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? _("Select Folder") : _("Select File"),
+      NULL,
+      action,
+      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+      action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? GTK_STOCK_APPLY : GTK_STOCK_OPEN,
+      GTK_RESPONSE_ACCEPT,
+      NULL);
+
+  const gchar *current = gtk_entry_get_text (GTK_ENTRY (entry));
+  if (current && current[0] != '\0')
+    gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (dialog), current);
+
+  if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+    {
+      gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+      gtk_entry_set_text (GTK_ENTRY (entry), filename);
+      g_free (filename);
+    }
+  gtk_widget_destroy (dialog);
+}
+
+/* Base macro: identical to TEXTENTRY but adds a Browse... button that
+   opens a file/folder chooser and writes the result back into the entry. */
+#define PATHENTRY(thelabel, field, action) \
+  hbox = gtk_hbox_new (FALSE, 8);\
+  gtk_box_pack_start (GTK_BOX (VBOX), hbox, FALSE, TRUE, 0);\
+  label = gtk_label_new (thelabel);\
+  gtk_misc_set_alignment (GTK_MISC (label), 1, 0.5);\
+  gtk_box_pack_start (GTK_BOX (hbox), label, FALSE, FALSE, 0);\
+  GtkWidget *field = gtk_entry_new ();\
+  gtk_entry_set_text (GTK_ENTRY (field), Denemo.prefs.field->str);\
+  gtk_box_pack_start (GTK_BOX (hbox), field, TRUE, TRUE, 0);\
+  GtkWidget *field##_browse = gtk_button_new_with_label (_("Browse..."));\
+  g_object_set_data (G_OBJECT (field##_browse), "chooser-action", GINT_TO_POINTER (action));\
+  g_signal_connect (field##_browse, "clicked", G_CALLBACK (browse_for_path_cb), field);\
+  gtk_box_pack_start (GTK_BOX (hbox), field##_browse, FALSE, FALSE, 0);\
+  cbdata.field = field;
+
+#define FILEENTRY(thelabel, field) \
+  PATHENTRY (thelabel, field, GTK_FILE_CHOOSER_ACTION_OPEN)
+
+#define FOLDERENTRY(thelabel, field) \
+  PATHENTRY (thelabel, field, GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER)
 
 #define PASSWORDENTRY(thelabel, field) \
   hbox = gtk_hbox_new (FALSE, 8);\
