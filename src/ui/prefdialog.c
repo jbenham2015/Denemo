@@ -388,6 +388,39 @@ midi_audio_tab_update (GtkWidget * box, gpointer data)
   gtk_window_resize (GTK_WINDOW (cbdata->dialog), 1, 1);
 }
 
+/* Generic callback: works for both file and folder pickers, since the
+   action is baked into the dialog before this runs. entry_widget is the
+   GtkEntry passed as user_data via g_signal_connect. */
+static void
+browse_for_path_cb (GtkButton * button, gpointer entry_widget)
+{
+  GtkWidget *entry = GTK_WIDGET (entry_widget);
+  GtkFileChooserAction action =
+    (GtkFileChooserAction) GPOINTER_TO_INT (g_object_get_data (G_OBJECT (button), "chooser-action"));
+
+  GtkWidget *dialog = gtk_file_chooser_dialog_new (
+      action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? _("Select Folder") : _("Select File"),
+      NULL,
+      action,
+      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+      action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? GTK_STOCK_APPLY : GTK_STOCK_OPEN,
+      GTK_RESPONSE_ACCEPT,
+      NULL);
+
+  const gchar *current = gtk_entry_get_text (GTK_ENTRY (entry));
+  if (current && current[0] != '\0')
+    gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (dialog), current);
+
+  if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
+    {
+      gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
+      gtk_entry_set_text (GTK_ENTRY (entry), filename);
+      g_free (filename);
+    }
+  gtk_widget_destroy (dialog);
+}
+
+
 //callback for Prefences command
 void
 preferences_change (GtkAction * action, DenemoScriptParam * param)
@@ -497,38 +530,6 @@ preferences_change (GtkAction * action, DenemoScriptParam * param)
   gtk_entry_set_text (GTK_ENTRY (field), Denemo.prefs.field->str);\
   gtk_box_pack_start (GTK_BOX (hbox), field, TRUE, TRUE, 0);\
   cbdata.field = field;
-
-/* Generic callback: works for both file and folder pickers, since the
-   action is baked into the dialog before this runs. entry_widget is the
-   GtkEntry passed as user_data via g_signal_connect. */
-static void
-browse_for_path_cb (GtkButton * button, gpointer entry_widget)
-{
-  GtkWidget *entry = GTK_WIDGET (entry_widget);
-  GtkFileChooserAction action =
-    (GtkFileChooserAction) GPOINTER_TO_INT (g_object_get_data (G_OBJECT (button), "chooser-action"));
-
-  GtkWidget *dialog = gtk_file_chooser_dialog_new (
-      action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? _("Select Folder") : _("Select File"),
-      NULL,
-      action,
-      GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-      action == GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER ? GTK_STOCK_APPLY : GTK_STOCK_OPEN,
-      GTK_RESPONSE_ACCEPT,
-      NULL);
-
-  const gchar *current = gtk_entry_get_text (GTK_ENTRY (entry));
-  if (current && current[0] != '\0')
-    gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (dialog), current);
-
-  if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT)
-    {
-      gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-      gtk_entry_set_text (GTK_ENTRY (entry), filename);
-      g_free (filename);
-    }
-  gtk_widget_destroy (dialog);
-}
 
 /* Base macro: identical to TEXTENTRY but adds a Browse... button that
    opens a file/folder chooser and writes the result back into the entry. */
@@ -683,7 +684,7 @@ browse_for_path_cb (GtkButton * button, gpointer entry_widget)
    * External (Helper) Programs
    */
   NEWPAGE (_("Externals"));
-  FILEENTRY (_("Path to Lilypond"), lilypath, FALSE)
+  FILEENTRY (_("Path to Lilypond"), lilypath)
   TEXTENTRY (_("File/Internet Browser"), browser)
   TEXTENTRY (_("Image Viewer"), imageviewer)
   TEXTENTRY (_("Graphics Editor"), graphicseditor)
