@@ -18,31 +18,31 @@ jobs:
 
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: UCRT64
           update: true
           install: >-
             base-devel
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-pkg-config
-            mingw-w64-x86_64-autotools
-            mingw-w64-x86_64-glib2
-            mingw-w64-x86_64-gtk3
-            mingw-w64-x86_64-libxml2
-            mingw-w64-x86_64-portaudio
-            mingw-w64-x86_64-fluidsynth
-            mingw-w64-x86_64-libsndfile
-            mingw-w64-x86_64-aubio
-            mingw-w64-x86_64-texinfo
-            mingw-w64-x86_64-gperf
-            mingw-w64-x86_64-gettext
-            mingw-w64-x86_64-libiconv
-            mingw-w64-x86_64-gtksourceview3
-            mingw-w64-x86_64-portmidi
-            mingw-w64-x86_64-evince
-            mingw-w64-x86_64-rubberband
-            mingw-w64-x86_64-gc
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-pkg-config
+            mingw-w64-ucrt-x86_64-autotools
+            mingw-w64-ucrt-x86_64-glib2
+            mingw-w64-ucrt-x86_64-gtk3
+            mingw-w64-ucrt-x86_64-libxml2
+            mingw-w64-ucrt-x86_64-portaudio
+            mingw-w64-ucrt-x86_64-fluidsynth
+            mingw-w64-ucrt-x86_64-libsndfile
+            mingw-w64-ucrt-x86_64-aubio
+            mingw-w64-ucrt-x86_64-texinfo
+            mingw-w64-ucrt-x86_64-gperf
+            mingw-w64-ucrt-x86_64-gettext
+            mingw-w64-ucrt-x86_64-libiconv
+            mingw-w64-ucrt-x86_64-gtksourceview3
+            mingw-w64-ucrt-x86_64-portmidi
+            mingw-w64-ucrt-x86_64-evince
+            mingw-w64-ucrt-x86_64-rubberband
+            mingw-w64-ucrt-x86_64-gc
             intltool
-            mingw-w64-x86_64-nsis
+            mingw-w64-ucrt-x86_64-nsis
             perl-XML-Parser
       
      
@@ -68,7 +68,7 @@ jobs:
       - name: Setup intltool for autoreconf
         run: |
           # Create a minimal intltool wrapper that doesn't rely on Perl module checks
-          mkdir -p /mingw64/bin
+          mkdir -p /ucrt64/bin
           
           # Check if intltool exists and works
           if intltool-update --version 2>/dev/null | grep -q intltool; then
@@ -78,12 +78,12 @@ jobs:
           fi
           
           # Set PKG_CONFIG_PATH for autoreconf
-          export PKG_CONFIG_PATH="/mingw64/lib/pkgconfig:$PKG_CONFIG_PATH"
+          export PKG_CONFIG_PATH="/ucrt64/lib/pkgconfig:$PKG_CONFIG_PATH"
           echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
       - name: Remove MSYS2 Guile to avoid conflict with custom build
         run: |
-          pacman -R --noconfirm mingw-w64-x86_64-guile || echo "guile not installed by pacman, skipping"
+          pacman -R --noconfirm mingw-w64-ucrt-x86_64-guile || echo "guile not installed by pacman, skipping"
 
       - name: Download deps artifact
         shell: pwsh
@@ -98,14 +98,14 @@ jobs:
         run: |
           cd /d/a/Denemo/Denemo
           tar xzf denemo-mingw64-deps.tar.gz
-          cp -rf mingw64/bin/* /mingw64/bin/
-          cp -rf mingw64/lib/* /mingw64/lib/
-          cp -rf mingw64/include/* /mingw64/include/
-          cp -rf mingw64/share/guile /mingw64/share/
-          ls /mingw64/bin/libguile*.dll || echo "no libguile dll found"
+          cp -rf mingw64/bin/* /ucrt64/bin/
+          cp -rf mingw64/lib/* /ucrt64/lib/
+          cp -rf mingw64/include/* /ucrt64/include/
+          cp -rf mingw64/share/guile /ucrt64/share/
+          ls /ucrt64/bin/libguile*.dll || echo "no libguile dll found"
           # Debug: check compiler modules exist
-          ls /mingw64/share/guile/3.0/language/tree-il || echo "tree-il missing"
-          ls /mingw64/share/guile/3.0/language/ || echo "no language dir"
+          ls /ucrt64/share/guile/3.0/language/tree-il || echo "tree-il missing"
+          ls /ucrt64/share/guile/3.0/language/ || echo "no language dir"
           guild --version
           guile --version
       - name: Bootstrap Denemo
@@ -115,24 +115,24 @@ jobs:
       - name: Configure Denemo
         shell: msys2 {0}
         run: |
-          mv /mingw64/bin/perl /mingw64/bin/perl.bak
+          mv /ucrt64/bin/perl /ucrt64/bin/perl.bak
           ./configure \
-            --prefix=/mingw64 \
+            --prefix=/ucrt64 \
             --enable-evince \
             --enable-portmidi \
             CFLAGS="-g -O2 -Wno-incompatible-pointer-types -Wno-int-conversion" \
-            CPPFLAGS="-I/mingw64/include" \
-            LDFLAGS="-L/mingw64/lib" \
-            PKG_CONFIG_PATH="/mingw64/lib/pkgconfig"
-          mv /mingw64/bin/perl.bak /mingw64/bin/perl
+            CPPFLAGS="-I/ucrt64/include" \
+            LDFLAGS="-L/ucrt64/lib" \
+            PKG_CONFIG_PATH="/ucrt64/lib/pkgconfig"
+          mv /ucrt64/bin/perl.bak /ucrt64/bin/perl
 
       - name: Build Denemo
         run: make -j$(nproc) 2>&1 | tee /d/a/Denemo/Denemo/denemo-build.log
 
       - name: Install Denemo
         run: |
-          mkdir -p /mingw64/share/denemo
-          make install prefix=/mingw64
+          mkdir -p /ucrt64/share/denemo
+          make install prefix=/ucrt64
       
       - name: Stage built Denemo files
         run: |
@@ -141,12 +141,12 @@ jobs:
           mkdir -p /d/a/Denemo/Denemo/staged/share/denemo
 
           # Copy denemo.exe to Windows-native path
-          cp -v /mingw64/bin/denemo.exe /d/a/Denemo/Denemo/staged/bin/denemo.exe
-          rm -f /mingw64/bin/denemo
+          cp -v /ucrt64/bin/denemo.exe /d/a/Denemo/Denemo/staged/bin/denemo.exe
+          rm -f /ucrt64/bin/denemo
 
-          cp -rf /mingw64/lib/guile/3.0/ccache/* \
+          cp -rf /ucrt64/lib/guile/3.0/ccache/* \
             /d/a/Denemo/Denemo/staged/lib/guile/3.0/ccache/ || true
-          cp -rf /mingw64/share/denemo/* \
+          cp -rf /ucrt64/share/denemo/* \
             /d/a/Denemo/Denemo/staged/share/denemo/ || true
 
           echo "staged/bin contents:"
@@ -154,7 +154,7 @@ jobs:
 
           # Copy lilypond-windows wrapper into lilypond/bin
           mkdir -p /d/a/Denemo/Denemo/staged/lilypond/bin
-          cp -v /mingw64/bin/lilypond-windows.exe \
+          cp -v /ucrt64/bin/lilypond-windows.exe \
             /d/a/Denemo/Denemo/staged/lilypond/bin/ || echo "WARNING: lilypond-windows.exe not found"
       
       - name: Download and stage LilyPond
@@ -188,9 +188,9 @@ jobs:
 
       - name: Collect required DLLs
         run: |
-          pacman -S --noconfirm mingw-w64-x86_64-ntldd || true
+          pacman -S --noconfirm mingw-w64-ucrt-x86_64-ntldd || true
           ntldd -R /d/a/Denemo/Denemo/staged/bin/denemo.exe 2>/dev/null \
-            | grep -i mingw64 \
+            | grep -i ucrt64 \
             | awk '{print $3}' \
             | sort -u > /d/a/Denemo/Denemo/required-dlls.txt
           echo "Required DLLs: $(wc -l < /d/a/Denemo/Denemo/required-dlls.txt)"
@@ -199,7 +199,7 @@ jobs:
         shell: pwsh
         run: |
           $staged = "D:\a\Denemo\Denemo\staged"
-          $mingw  = "D:\a\_temp\msys64\mingw64"
+          $mingw  = "D:\a\_temp\msys64\ucrt64"
 
           New-Item -ItemType Directory -Force -Path "$staged\bin"
           New-Item -ItemType Directory -Force -Path "$staged\lib"
@@ -296,7 +296,7 @@ jobs:
           echo "Scanning staged lib for plugin DLLs..."
           find /d/a/Denemo/Denemo/staged/lib -name "*.dll" 2>/dev/null | while read dll; do
             ntldd -R "$dll" 2>/dev/null \
-              | grep -i mingw64 \
+              | grep -i ucrt64 \
               | awk '{print $3}'
           done | sort -u > /d/a/Denemo/Denemo/plugin-dlls.txt
 
@@ -375,7 +375,7 @@ jobs:
           $rootPath = (Resolve-Path "D:\a\Denemo\Denemo\staged").Path
           Write-Host "Root path: $rootPath"
           Set-Location D:\a\Denemo\Denemo\packaging\nsis
-          & "D:\a\_temp\msys64\mingw64\bin\makensis.exe" /DVERSION=$version "/DROOT=$rootPath" denemo.nsi
+          & "D:\a\_temp\msys64\ucrt64\bin\makensis.exe" /DVERSION=$version "/DROOT=$rootPath" denemo.nsi
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
