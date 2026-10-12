@@ -41,6 +41,8 @@ jobs:
             mingw-w64-ucrt-x86_64-evince
             mingw-w64-ucrt-x86_64-rubberband
             mingw-w64-ucrt-x86_64-gc
+            mingw-w64-ucrt-x86_64-libunistring
+            mingw-w64-ucrt-x86_64-libffi
             intltool
             mingw-w64-ucrt-x86_64-nsis
             perl-XML-Parser
@@ -90,18 +92,15 @@ jobs:
         run: |
           $headers = @{Authorization = "token ${{ secrets.DEPS_TOKEN }}"}
           $artifacts = Invoke-RestMethod -Uri "https://api.github.com/repos/jbenham2015/denemo-mingw64-deps/actions/artifacts" -Headers $headers
-          $artifact = $artifacts.artifacts | Where-Object { $_.name -eq "denemo-mingw64-deps" } | Select-Object -First 1
+          $artifact = $artifacts.artifacts | Where-Object { $_.name -eq "denemo-ucrt64-deps" } | Select-Object -First 1
+          if (-not $artifact) { throw "Artifact denemo-ucrt64-deps not found (expired or renamed?)" }
           $downloadUrl = $artifact.archive_download_url
-          Invoke-WebRequest -Uri $downloadUrl -Headers $headers -OutFile "D:\a\Denemo\Denemo\denemo-mingw64-deps.zip"
-          Expand-Archive -Path "D:\a\Denemo\Denemo\denemo-mingw64-deps.zip" -DestinationPath "D:\a\Denemo\Denemo\"
+          Invoke-WebRequest -Uri $downloadUrl -Headers $headers -OutFile "D:\a\Denemo\Denemo\denemo-ucrt64-deps.zip"
+          Expand-Archive -Path "D:\a\Denemo\Denemo\denemo-ucrt64-deps.zip" -DestinationPath "D:\a\Denemo\Denemo\"
       - name: Extract deps
         run: |
           cd /d/a/Denemo/Denemo
-          tar xzf denemo-mingw64-deps.tar.gz
-          cp -rf mingw64/bin/* /ucrt64/bin/
-          cp -rf mingw64/lib/* /ucrt64/lib/
-          cp -rf mingw64/include/* /ucrt64/include/
-          cp -rf mingw64/share/guile /ucrt64/share/
+          tar xzf denemo-ucrt64-deps.tar.gz -C /ucrt64
           ls /ucrt64/bin/libguile*.dll || echo "no libguile dll found"
           # Debug: check compiler modules exist
           ls /ucrt64/share/guile/3.0/language/tree-il || echo "tree-il missing"
