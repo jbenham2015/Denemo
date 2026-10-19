@@ -1,4 +1,4 @@
-name: Build Denemo for macOS
+name: Build Denemo for macOS (Apple Silicon)
 on:
   push:
     branches:
@@ -7,20 +7,19 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
-    # ── Job-level env: silence Homebrew hints globally ───────────────────────
-    # Without these, keg-only packages (expat, libxml2, guile, …) print
-    # advisory messages that cause brew to exit 1 in GitHub Actions.
+    runs-on: macos-14   # Apple Silicon (arm64)
     env:
+      # Keg-only packages print advisory hints that can make brew exit non-zero in CI
       HOMEBREW_NO_ENV_HINTS: "1"
       HOMEBREW_NO_PATH_SHADOW_CHECK: "1"
+      HOMEBREW_NO_AUTO_UPDATE: "1"
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # ── ARM64 dependencies (native /opt/homebrew) ────────────────────────────
-    - name: Install ARM64 build dependencies
+    # ── Dependencies ─────────────────────────────────────────────────────────
+    - name: Install build dependencies
       run: |
         brew install \
           autoconf \
@@ -29,11 +28,11 @@ jobs:
           intltool \
           pkg-config \
           gtk+3 \
-          libassuan \
-          librsvg \
-          libgpg-error \
-          gtk-doc \
           gtksourceview3 \
+          libassuan \
+          libgpg-error \
+          librsvg \
+          gtk-doc \
           expat \
           guile \
           aubio \
@@ -49,9 +48,9 @@ jobs:
           openjpeg \
           little-cms2 \
           freetype \
-          poppler \
           fontconfig \
           cairo \
+          poppler \
           nss \
           nspr \
           gpgme \
@@ -59,129 +58,37 @@ jobs:
           gettext \
           evince \
           xz \
-          zstd
+          zstd \
+          dylibbundler \
+          create-dmg
 
-    - name: Verify ARM64 dependencies actually installed
+    - name: Verify key dependencies are installed
       run: |
-        for pkg in portmidi portaudio fftw librsvg fluid-synth; do
+        for pkg in portmidi portaudio fftw librsvg fluid-synth gtk+3 guile; do
           brew --prefix "$pkg" >/dev/null 2>&1 || { echo "::error::$pkg is not installed"; exit 1; }
         done
 
-    - name: Debug portmidi install (ARM64)
+    - name: Ensure XML::Parser is available for intltool
       run: |
-        export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-        echo "---- brew --prefix portmidi ----"
-        brew --prefix portmidi
-        echo "---- include dir ----"
-        ls -la "$(brew --prefix portmidi)/include" || true
-        echo "---- lib dir ----"
-        ls -la "$(brew --prefix portmidi)/lib" || true
-        echo "---- is it keg-only? ----"
-        brew info portmidi
-        echo "---- symlinked into main prefix? ----"
-        ls -la /opt/homebrew/include/portmidi.h || true
-        ls -la /opt/homebrew/lib/libportmidi* || true
-    # ── Rosetta / x86_64 Homebrew setup ─────────────────────────────────────
-    - name: Install Rosetta 2
-      run: softwareupdate --install-rosetta --agree-to-license
-
-    - name: Bootstrap x86_64 Homebrew under Rosetta
-      run: |
-        if [ ! -f /usr/local/bin/brew ]; then
-          arch -x86_64 /bin/bash -c \
-            "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        fi
-
-    - name: Fix x86_64 Python symlink conflicts
-      run: |
-        # Remove conflicting Python symlinks that block brew link
-        rm -f /usr/local/bin/idle3 /usr/local/bin/idle3.14
-        rm -f /usr/local/bin/pip3 /usr/local/bin/pip3.14
-        rm -f /usr/local/bin/python3 /usr/local/bin/python3.14
-        rm -f /usr/local/bin/python3-config /usr/local/bin/python3.14-config
-        rm -f /usr/local/bin/pydoc3 /usr/local/bin/pydoc3.14
-        rm -f /usr/local/bin/2to3 /usr/local/bin/2to3-3.14
-    - name: Install x86_64 build dependencies via Rosetta
-      run: |
-        export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
-        arch -x86_64 /usr/local/bin/brew install \
-        autoconf \
-        automake \
-        libtool \
-        intltool \
-        pkg-config \
-        cmake \
-        gtk+3 \
-        libassuan \
-        libgpg-error \
-        librsvg \
-        gtksourceview3 \
-        expat \
-        guile \
-        aubio \
-        perl-xml-parser \
-        portaudio \
-        portmidi \
-        fftw \
-        libxml2 \
-        fluid-synth \
-        rubberband \
-        libsndfile \
-        gettext \
-        jpeg-turbo \
-        openjpeg \
-        little-cms2 \
-        freetype \
-        fontconfig \
-        cairo \
-        poppler \
-        nss \
-        nspr \
-        gpgme \
-        gpgmepp \
-        fontconfig \
-        evince \
-        xz \
-        zstd || true
-
-        # Verify the packages that actually matter for configure are present
-        echo "=== Checking critical keg-only packages ==="
-        test -f /usr/local/opt/expat/lib/pkgconfig/expat.pc   && echo "expat OK"   || echo "ERROR: expat missing"
-        test -f /usr/local/opt/libxml2/lib/pkgconfig/libxml-2.0.pc && echo "libxml2 OK" || echo "ERROR: libxml2 missing"
-        test -d /usr/local/opt/guile  && echo "guile OK"  || echo "ERROR: guile missing"
-
-    - name: Check poppler version
-      run: |
-        ls /usr/local/opt/poppler/lib/libpoppler*.dylib 2>/dev/null || echo "no x86 poppler"
-        ls /opt/homebrew/opt/poppler/lib/libpoppler*.dylib 2>/dev/null || echo "no arm poppler"
-        # ── autotools (once, using ARM64 tools) ─────────────────────────────────
-    - name: Install XML::Parser for intltool
-      run: |
-        export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-        # Verify XML::Parser is available for the perl intltool will use
         if ! /opt/homebrew/bin/perl -MXML::Parser -e 1 2>/dev/null; then
-            echo "XML::Parser not found, installing via cpan..."
-            echo | /opt/homebrew/bin/cpan XML::Parser
+          echo "XML::Parser not found, installing via cpan..."
+          echo | /opt/homebrew/bin/cpan XML::Parser
         else
-            echo "XML::Parser OK"
+          echo "XML::Parser OK"
         fi
 
+    # ── Build ────────────────────────────────────────────────────────────────
     - name: Run autotools
       run: |
         export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
         chmod +x autogen.sh
         ./autogen.sh
 
-    # ── ARM64 build ──────────────────────────────────────────────────────────
-    - name: Configure (ARM64)
+    - name: Configure
       run: |
         export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-        export PKG_CONFIG_PATH="\
-          /opt/homebrew/opt/expat/lib/pkgconfig:\
-          /opt/homebrew/opt/libxml2/lib/pkgconfig:\
-          /opt/homebrew/opt/portmidi/lib/pkgconfig:\
-          /opt/homebrew/lib/pkgconfig:\
-          /opt/homebrew/share/pkgconfig"
+        # Keep this on one line: spaces after a line continuation would end up in the value
+        export PKG_CONFIG_PATH="/opt/homebrew/opt/expat/lib/pkgconfig:/opt/homebrew/opt/libxml2/lib/pkgconfig:/opt/homebrew/opt/portmidi/lib/pkgconfig:/opt/homebrew/lib/pkgconfig:/opt/homebrew/share/pkgconfig"
         mkdir -p _build_arm64
         cd _build_arm64
         ../configure --prefix=/opt/homebrew \
@@ -196,91 +103,29 @@ jobs:
           CPPFLAGS="-I/opt/homebrew/opt/expat/include -I/opt/homebrew/opt/libxml2/include -I/opt/homebrew/opt/portmidi/include" \
         || (echo "==== config.log tail ====" && tail -n 150 config.log && exit 1)
 
-    - name: Make (ARM64)
+    - name: Make
       run: |
         export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
         cd _build_arm64
-        make -j$(sysctl -n hw.logicalcpu)
+        make -j"$(sysctl -n hw.logicalcpu)"
 
-    # ── x86_64 build (Rosetta) ───────────────────────────────────────────────
-    - name: Configure (x86_64)
-      run: |
-        # Keep ARM64 Homebrew off the PATH completely
-        export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
-        # Both expat and libxml2 are keg-only in the Intel Homebrew prefix too
-        export PKG_CONFIG_PATH="\
-          /usr/local/opt/expat/lib/pkgconfig:\
-          /usr/local/opt/libxml2/lib/pkgconfig:\
-          /usr/local/opt/portmidi/lib/pkgconfig:\
-          /usr/local/lib/pkgconfig:\
-          /usr/local/share/pkgconfig"
-        mkdir -p _build_x86_64
-        cd _build_x86_64
-        arch -x86_64 ../configure --prefix=/usr/local \
-          --enable-debug \
-          --enable-portmidi \
-          --disable-jack \
-          --disable-atril \
-          --enable-evince \
-          CC="clang -arch x86_64" \
-          CXX="clang++ -arch x86_64" \
-          CFLAGS="-arch x86_64 -D_MACH_O_" \
-          CXXFLAGS="-arch x86_64" \
-          LDFLAGS="-arch x86_64 -L/usr/local/opt/expat/lib -L/usr/local/opt/libxml2/lib -L/usr/local/opt/portmidi/lib" \
-          CPPFLAGS="-I/usr/local/opt/expat/include -I/usr/local/opt/libxml2/include -I/usr/local/opt/portmidi/include"                                                                    
-          PKG_CONFIG=/usr/local/bin/pkg-config
-
-    - name: Make (x86_64)
-      run: |
-        export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
-        cd _build_x86_64
-        arch -x86_64 make -j$(sysctl -n hw.logicalcpu)
-
-    # ── Combine slices into a universal binary ───────────────────────────────
-    - name: Create universal binary with lipo
+    - name: Make install
       run: |
         export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-        mkdir -p _build_universal
-        ARM_BIN="_build_arm64/src/denemo"
-        X86_BIN="_build_x86_64/src/denemo"
-        UNIVERSAL_BIN="_build_universal/denemo"
-        echo "=== ARM64 archs ===" && lipo -info "$ARM_BIN"
-        echo "=== x86_64 archs ===" && lipo -info "$X86_BIN"
-        lipo -create "$ARM_BIN" "$X86_BIN" -output "$UNIVERSAL_BIN"
-        echo "=== Universal archs ===" && lipo -info "$UNIVERSAL_BIN"
+        cd _build_arm64
+        make install
 
-    # ── Install ARM64 tree then replace binary with universal ────────────────
-    - name: Make install (ARM64 tree)
-      run: |
-        export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-        cd _build_arm64 && make install
-
-    - name: Replace installed binary with universal binary
-      run: |
-        cp _build_universal/denemo /opt/homebrew/bin/denemo
-        echo "=== Installed binary archs ===" && lipo -info /opt/homebrew/bin/denemo
-
-    # ── Inspect & smoke test ─────────────────────────────────────────────────
+    # ── Inspect the plain install ────────────────────────────────────────────
     - name: Inspect installed files
       run: |
-        echo "=== Binary ===" && find /opt/homebrew/bin -name "denemo*" 2>/dev/null
+        echo "=== Binary arch ===" && lipo -info /opt/homebrew/bin/denemo
         echo "=== Share ===" && find /opt/homebrew/share/denemo -maxdepth 2 2>/dev/null || echo "No share/denemo"
-        echo "=== Dylib dependencies ===" && otool -L /opt/homebrew/bin/denemo 2>/dev/null || echo "binary not found"
-        echo "=== Icons ===" && find /opt/homebrew/share -name "*.icns" -o -name "denemo*.png" 2>/dev/null | head -10
+        echo "=== Dylib dependencies ===" && otool -L /opt/homebrew/bin/denemo
 
-    - name: Install bundle tools
-      run: brew install dylibbundler create-dmg
-
-    - name: Smoke test binary
+    - name: Smoke test installed binary
       run: |
-        export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
         /opt/homebrew/bin/denemo --version 2>&1 || true
         /opt/homebrew/bin/denemo --help 2>&1 | head -5 || true
-
-    - name: Debug x86_64 fontconfig
-      run: |
-        find /usr/local -name "libfontconfig*" 2>/dev/null
-        find /usr/local/Cellar -name "libfontconfig*" 2>/dev/null
 
     # ── Bundle and DMG ───────────────────────────────────────────────────────
     - name: Bundle app and create DMG
@@ -290,12 +135,84 @@ jobs:
         chmod +x packaging/bundle-macos.sh
         ./packaging/bundle-macos.sh
 
+    # ── Test the DMG that users will actually get ────────────────────────────
+    - name: Smoke test DMG contents
+      run: |
+        set -uo pipefail
+
+        DMG=$(ls Denemo-*-macOS.dmg Denemo.dmg 2>/dev/null | head -n 1 || true)
+        if [ -z "$DMG" ]; then
+          echo "::error::No DMG found"
+          exit 1
+        fi
+        echo "Testing $DMG"
+
+        MNT=$(mktemp -d)
+        hdiutil attach "$DMG" -nobrowse -readonly -mountpoint "$MNT"
+        trap 'hdiutil detach "$MNT" -force >/dev/null 2>&1 || true' EXIT
+
+        APP=$(find "$MNT" -maxdepth 2 -name "*.app" | head -n 1)
+        if [ -z "$APP" ]; then
+          echo "::error::No .app bundle in DMG"
+          find "$MNT" -maxdepth 3
+          exit 1
+        fi
+        echo "Found app: $APP"
+
+        # Copy out so we run it like a user would, not from the read-only image
+        WORK=$(mktemp -d)
+        cp -R "$APP" "$WORK/"
+        APP="$WORK/$(basename "$APP")"
+
+        # 1. Every Mach-O file must be arm64 and must not reference Homebrew paths
+        FAIL=0
+        while IFS= read -r f; do
+          if file "$f" | grep -q "Mach-O"; then
+            if ! lipo -archs "$f" 2>/dev/null | grep -qw arm64; then
+              echo "::error::Not arm64: $f"
+              FAIL=1
+            fi
+            BAD=$(otool -L "$f" 2>/dev/null | tail -n +2 | awk '{print $1}' \
+                  | grep -E '^(/opt/homebrew|/usr/local)' || true)
+            if [ -n "$BAD" ]; then
+              echo "::error::External library path in $f:"
+              echo "$BAD"
+              FAIL=1
+            fi
+          fi
+        done < <(find "$APP" -type f)
+
+        if [ "$FAIL" -ne 0 ]; then
+          echo "::error::Bundle has non-relocatable or wrong-arch binaries"
+          exit 1
+        fi
+        echo "All Mach-O files are arm64 and relocatable"
+
+        # 2. Run the bundled binary with Homebrew hidden from the library search
+        BIN=$(find "$APP/Contents/MacOS" -type f -perm -u+x | head -n 1)
+        echo "Bundled binary: $BIN"
+        env -i HOME="$HOME" PATH="/usr/bin:/bin" "$BIN" --version 2>&1 | head -5
+
+        # 3. Startup test: launch and check it doesn't crash within 10 seconds.
+        #    No display on the runner, so a clean "cannot open display" exit is acceptable;
+        #    a dyld/library error is not.
+        env -i HOME="$HOME" PATH="/usr/bin:/bin" "$BIN" > startup.log 2>&1 &
+        PID=$!
+        sleep 10
+        kill "$PID" 2>/dev/null || true
+        echo "---- startup log ----"
+        cat startup.log
+        if grep -Eqi "dyld|Library not loaded|image not found|symbol not found" startup.log; then
+          echo "::error::dynamic linker error during startup"
+          exit 1
+        fi
+
     # ── Upload artifact ──────────────────────────────────────────────────────
     - name: Upload DMG Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: denemo-macos-dmg
+        name: denemo-macos-arm64-dmg
         path: |
           Denemo-*-macOS.dmg
           Denemo.dmg
-        if-no-files-found: warn
+        if-no-files-found: error
