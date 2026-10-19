@@ -100,7 +100,7 @@ cat > "${APP_DIR}/Contents/Info.plist" << EOF
     </dict>
   </array>
   <key>LSMinimumSystemVersion</key>
-  <string>12.0</string>
+  <string>14.0</string>
   <key>NSHighResolutionCapable</key>
   <true/>
   <key>NSHumanReadableCopyright</key>
@@ -207,8 +207,7 @@ du -sh "${RESOURCES}/share/guile/" 2>/dev/null
 du -sh "${RESOURCES}/lib/guile/"   2>/dev/null
 
 # -- 5c. Bundle LilyPond
-# ── Bundle official LilyPond release (includes gs in libexec/) ───────────────
-# Download and extract ARM64 build
+# Official LilyPond release for Apple Silicon (includes gs in libexec/).
 ARM_TARBALL="lilypond-${LILY_VERSION}-darwin-arm64.tar.gz"
 echo "  Downloading ${ARM_TARBALL}..."
 if ! curl -fL "${LILY_BASE}/${ARM_TARBALL}" -o "/tmp/${ARM_TARBALL}"; then
@@ -216,47 +215,20 @@ if ! curl -fL "${LILY_BASE}/${ARM_TARBALL}" -o "/tmp/${ARM_TARBALL}"; then
     exit 1
 fi
 
-# Extract and inspect contents
 echo "  Extracting ${ARM_TARBALL}..."
-mkdir -p /tmp/lily-arm64 && tar -xz -f "/tmp/${ARM_TARBALL}" -C /tmp/lily-arm64 --strip-components=1
 ARM_DIR="/tmp/lily-arm64"
-X86_DIR="/tmp/lily-x86_64"
-# Download and extract x86_64 build
-X86_TARBALL="lilypond-${LILY_VERSION}-darwin-x86_64.tar.gz"
-echo "  Downloading ${X86_TARBALL}..."
-if ! curl -fL "${LILY_BASE}/${X86_TARBALL}" -o "/tmp/${X86_TARBALL}"; then
-    echo "ERROR: Failed to download x86_64 LilyPond" >&2
-    exit 1
-fi
-echo "  Extracting ${X86_TARBALL}..."
-mkdir -p /tmp/lily-x86_64 && tar -xz -f "/tmp/${X86_TARBALL}" -C /tmp/lily-x86_64 --strip-components=1
-rm -f "/tmp/${ARM_TARBALL}" "/tmp/${X86_TARBALL}"
+rm -rf "${ARM_DIR}"
+mkdir -p "${ARM_DIR}"
+tar -xz -f "/tmp/${ARM_TARBALL}" -C "${ARM_DIR}" --strip-components=1
+rm -f "/tmp/${ARM_TARBALL}"
 
 mkdir -p "${LILY_DIR}"
-# Copy the data tree from arm64 (identical between architectures)
-cp -R "${ARM_DIR}/share"   "${LILY_DIR}/share"
-cp -R "${ARM_DIR}/lib"     "${LILY_DIR}/lib"
-cp -R "${ARM_DIR}/etc"     "${LILY_DIR}/etc"
-cp -R "${ARM_DIR}/libexec" "${LILY_DIR}/libexec"
-mkdir -p "${LILY_DIR}/bin"
-
-# Make universal binaries for everything in bin/ and libexec/
-for dir in bin libexec; do
-    for arm_bin in "${ARM_DIR}/${dir}/"*; do
-        name=$(basename "${arm_bin}")
-        x86_bin="${X86_DIR}/${dir}/${name}"
-        dest="${LILY_DIR}/${dir}/${name}"
-        if [ -f "${x86_bin}" ]; then
-            file "${arm_bin}" | grep -q "Mach-O" || { cp "${arm_bin}" "${dest}"; continue; }
-            lipo -create "${arm_bin}" "${x86_bin}" -output "${dest}"
-            codesign --force --sign - "${dest}"
-            echo "  universal: ${dir}/${name}"
-        else
-            cp "${arm_bin}" "${dest}"
-            chmod +x "${dest}"
-        fi
-    done
+for d in bin share lib etc libexec; do
+    if [ -d "${ARM_DIR}/${d}" ]; then
+        cp -R "${ARM_DIR}/${d}" "${LILY_DIR}/${d}"
+    fi
 done
+rm -rf "${ARM_DIR}"
 
 echo "LilyPond ${LILY_VERSION} bundled."
 # ── Install Denemo launcher ─────────────────────────────────────────────────────────
@@ -277,7 +249,6 @@ dylibbundler \
     --install-path "@executable_path/../libs/" \
     --overwrite-dir \
     --search-path "${HOMEBREW_PREFIX}/lib" \
-    --search-path "/usr/local/lib" \
     --search-path "${HOMEBREW_PREFIX}/opt/guile/lib" \
     --search-path "${HOMEBREW_PREFIX}/opt/gtk+3/lib" \
     --search-path "${HOMEBREW_PREFIX}/opt/glib/lib" \
@@ -287,198 +258,82 @@ dylibbundler \
     || true
 
 # ============================================================
-# Bundle Evince Backends (Universal Binary)
+# Helper: make a Mach-O file relocatable
+# Rewrites every Homebrew dependency to @executable_path/../libs/,
+# copying the dependency into Contents/libs first if it isn't there
+# (recursively), then re-signs the file if anything changed.
 # ============================================================
 BACKENDS_DIR="${APP_DIR}/Contents/lib/evince/4/backends"
 LIBS_DIR="${APP_DIR}/Contents/libs"
-INTEL="/usr/local/Cellar/evince/48.4/lib/evince/4/backends"
-ARM="/opt/homebrew/Cellar/evince/48.4/lib/evince/4/backends"
+NEW_PREFIX="@executable_path/../libs"
 
-mkdir -p "${BACKENDS_DIR}"
-
-# --- Step 1: lipo all backends into universal binaries ---
-for BACKEND in comicsdocument djvudocument pdfdocument psdocument tiffdocument xpsdocument; do
-    lipo -create \
-        "${INTEL}/lib${BACKEND}.so" \
-        "${ARM}/lib${BACKEND}.so" \
-        -output "${BACKENDS_DIR}/lib${BACKEND}.so"
-    chmod 644 "${BACKENDS_DIR}/lib${BACKEND}.so"
-done
-
-# Copy descriptor files (plain text, arch-independent)
-cp "${INTEL}/"*.evince-backend "${BACKENDS_DIR}/"
-chmod 644 "${BACKENDS_DIR}/"*.evince-backend
-
-# --- Step 2: Rewrite hardcoded Cellar paths in each .so ---
-# Convention: @loader_path/../../../../libs/ points to Contents/libs/
-#             @loader_path/../../../../libs/libevdocument3.4.dylib for evince's own lib
-
-RPATH="@loader_path/../../../../libs"
-EVINCE_LIB="@loader_path/../../../../libs/libevdocument3.4.dylib"
-
-rewrite() {
-    local SO="$1"
-    local OLD_X86="$2"
-    local OLD_ARM="$3"
-    local NEW="$4"
-    install_name_tool -change "${OLD_X86}" "${NEW}" "${SO}" 2>/dev/null || true
-    install_name_tool -change "${OLD_ARM}" "${NEW}" "${SO}" 2>/dev/null || true
+# Find a library referenced as @rpath/<name> somewhere in Homebrew
+find_rpath_lib() {
+    local name="$1" d
+    if [ -e "${HOMEBREW_PREFIX}/lib/${name}" ]; then
+        echo "${HOMEBREW_PREFIX}/lib/${name}"; return 0
+    fi
+    for d in "${HOMEBREW_PREFIX}"/opt/*/lib; do
+        if [ -e "${d}/${name}" ]; then
+            echo "${d}/${name}"; return 0
+        fi
+    done
+    return 1
 }
 
-for SO in "${BACKENDS_DIR}/"*.so; do
-    echo "Rewriting: $(basename ${SO})"
-
-    # evince's own library
-    rewrite "$SO" \
-        "/usr/local/Cellar/evince/48.4/lib/libevdocument3.4.dylib" \
-        "/opt/homebrew/Cellar/evince/48.4/lib/libevdocument3.4.dylib" \
-        "${EVINCE_LIB}"
-
-    # Common deps (already in your bundle)
-    rewrite "$SO" "/usr/local/opt/cairo/lib/libcairo.2.dylib"               "/opt/homebrew/opt/cairo/lib/libcairo.2.dylib"               "${RPATH}/libcairo.2.dylib"
-    rewrite "$SO" "/usr/local/opt/gdk-pixbuf/lib/libgdk_pixbuf-2.0.0.dylib" "/opt/homebrew/opt/gdk-pixbuf/lib/libgdk_pixbuf-2.0.0.dylib" "${RPATH}/libgdk_pixbuf-2.0.0.dylib"
-    rewrite "$SO" "/usr/local/opt/glib/lib/libgobject-2.0.0.dylib"          "/opt/homebrew/opt/glib/lib/libgobject-2.0.0.dylib"          "${RPATH}/libgobject-2.0.0.dylib"
-    rewrite "$SO" "/usr/local/opt/glib/lib/libglib-2.0.0.dylib"             "/opt/homebrew/opt/glib/lib/libglib-2.0.0.dylib"             "${RPATH}/libglib-2.0.0.dylib"
-    rewrite "$SO" "/usr/local/opt/glib/lib/libgio-2.0.0.dylib"              "/opt/homebrew/opt/glib/lib/libgio-2.0.0.dylib"              "${RPATH}/libgio-2.0.0.dylib"
-    rewrite "$SO" "/usr/local/opt/gettext/lib/libintl.8.dylib"              "/opt/homebrew/opt/gettext/lib/libintl.8.dylib"              "${RPATH}/libintl.8.dylib"
-    rewrite "$SO" "/usr/local/opt/gtk+3/lib/libgtk-3.0.dylib"               "/opt/homebrew/opt/gtk+3/lib/libgtk-3.0.dylib"               "${RPATH}/libgtk-3.0.dylib"
-    rewrite "$SO" "/usr/local/opt/pango/lib/libpango-1.0.0.dylib"           "/opt/homebrew/opt/pango/lib/libpango-1.0.0.dylib"           "${RPATH}/libpango-1.0.0.dylib"
-
-    # Backend-specific deps — bundle these too if not already present
-    rewrite "$SO" "/usr/local/opt/poppler/lib/libpoppler-glib.8.dylib"      "/opt/homebrew/opt/poppler/lib/libpoppler-glib.8.dylib"      "${RPATH}/libpoppler-glib.8.dylib"
-    rewrite "$SO" "@rpath/libpoppler.161.dylib" "@rpath/libpoppler.161.dylib" "${RPATH}/libpoppler.dylib"
-    rewrite "$SO" "@rpath/libpoppler.162.dylib" "@rpath/libpoppler.162.dylib" "${RPATH}/libpoppler.dylib"
-    rewrite "$SO" "/usr/local/opt/djvulibre/lib/libdjvulibre.21.dylib"      "/opt/homebrew/opt/djvulibre/lib/libdjvulibre.21.dylib"      "${RPATH}/libdjvulibre.21.dylib"
-    rewrite "$SO" "/usr/local/opt/libarchive/lib/libarchive.13.dylib"       "/opt/homebrew/opt/libarchive/lib/libarchive.13.dylib"       "${RPATH}/libarchive.13.dylib"
-    rewrite "$SO" "/usr/local/opt/libtiff/lib/libtiff.6.dylib"              "/opt/homebrew/opt/libtiff/lib/libtiff.6.dylib"              "${RPATH}/libtiff.6.dylib"
-    rewrite "$SO" "/usr/local/opt/libspectre/lib/libspectre.1.dylib"        "/opt/homebrew/opt/libspectre/lib/libspectre.1.dylib"        "${RPATH}/libspectre.1.dylib"
-    rewrite "$SO" "/usr/local/opt/libgxps/lib/libgxps.2.dylib"              "/opt/homebrew/opt/libgxps/lib/libgxps.2.dylib"              "${RPATH}/libgxps.2.dylib"
-
-    codesign --force --sign - "${SO}"
-done
-
-# --- Step 3: Bundle the backend-specific libs if not already present ---
-for LIB in \
-    "openjpeg/lib/libopenjp2.7.dylib" \
-    "poppler/lib/libpoppler-glib.8.dylib" \
-    "poppler/lib/libpoppler.dylib" \
-    "djvulibre/lib/libdjvulibre.21.dylib" \
-    "libarchive/lib/libarchive.13.dylib" \
-    "libtiff/lib/libtiff.6.dylib" \
-    "libspectre/lib/libspectre.1.dylib" \
-    "libgxps/lib/libgxps.2.dylib" \
-    "jpeg-turbo/lib/libjpeg.8.dylib" \
-    "gpgmepp/lib/libgpgmepp.7.dylib" \
-    "gpgme/lib/libgpgme.45.dylib" \
-    "nss/lib/libnss3.dylib" \
-    "nss/lib/libnssutil3.dylib" \
-    "nss/lib/libsmime3.dylib" \
-    "nss/lib/libssl3.dylib" \
-    "nspr/lib/libplds4.dylib" \
-    "nspr/lib/libplc4.dylib" \
-    "nspr/lib/libnspr4.dylib" \
-    "little-cms2/lib/liblcms2.2.dylib" \
-    "libassuan/lib/libassuan.9.dylib" \
-    "libgpg-error/lib/libgpg-error.0.dylib" \
-    "zstd/lib/libzstd.1.dylib" \
-    "xz/lib/liblzma.5.dylib" 
-do
-    LIBNAME=$(basename "$LIB")
-    if [ ! -f "${LIBS_DIR}/${LIBNAME}" ]; then
-        echo "Bundling missing lib: ${LIBNAME}"
-        lipo -create \
-            "/usr/local/opt/${LIB}" \
-            "/opt/homebrew/opt/${LIB}" \
-            -output "${LIBS_DIR}/${LIBNAME}"
-        codesign --force --sign - "${LIBS_DIR}/${LIBNAME}"
-    else
-        echo "Already bundled: ${LIBNAME}"
+fix_and_bundle() {
+    local file="$1" dep src name self changed=0
+    self=$(basename "${file}")
+    chmod u+w "${file}"
+    while IFS= read -r dep; do
+        src=""
+        case "${dep}" in
+            "${HOMEBREW_PREFIX}"/*) src="${dep}" ;;
+            @rpath/*) src=$(find_rpath_lib "${dep#@rpath/}") || continue ;;
+            *) continue ;;
+        esac
+        name=$(basename "${dep}")
+        [ "${name}" = "${self}" ] && continue
+        if [ ! -f "${LIBS_DIR}/${name}" ]; then
+            echo "  bundling ${name} (needed by ${self})"
+            cp -L "${src}" "${LIBS_DIR}/${name}"
+            chmod 644 "${LIBS_DIR}/${name}"
+            install_name_tool -id "${NEW_PREFIX}/${name}" "${LIBS_DIR}/${name}" 2>/dev/null || true
+            fix_and_bundle "${LIBS_DIR}/${name}"
+        fi
+        install_name_tool -change "${dep}" "${NEW_PREFIX}/${name}" "${file}"
+        changed=1
+    done < <(otool -L "${file}" | tail -n +2 | awk '{print $1}')
+    if [ "${changed}" -eq 1 ]; then
+        codesign --force --sign - "${file}"
     fi
+}
+
+# ============================================================
+# Bundle Evince backends (arm64)
+# ============================================================
+EVINCE_SRC="${HOMEBREW_PREFIX}/opt/evince/lib/evince/4/backends"
+if [ ! -d "${EVINCE_SRC}" ]; then
+    echo "ERROR: Evince backends not found at ${EVINCE_SRC}" >&2
+    exit 1
+fi
+
+mkdir -p "${BACKENDS_DIR}"
+cp -L "${EVINCE_SRC}/"*.so "${BACKENDS_DIR}/"
+cp -L "${EVINCE_SRC}/"*.evince-backend "${BACKENDS_DIR}/"
+chmod 644 "${BACKENDS_DIR}/"*.so "${BACKENDS_DIR}/"*.evince-backend
+
+# Backends are dlopen()ed, so dylibbundler never sees them. Rewrite their
+# dependencies and pull in anything missing (poppler, djvu, archive, ...).
+for SO in "${BACKENDS_DIR}/"*.so; do
+    echo "Fixing backend: $(basename "${SO}")"
+    fix_and_bundle "${SO}"
 done
-# Fix install names for poppler libs
-install_name_tool -id "@executable_path/../libs/libpoppler-glib.8.dylib" \
-    "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
-install_name_tool -delete_rpath "@loader_path/../lib" \
-    "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
-install_name_tool -add_rpath "@executable_path/../libs" \
-    "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
-install_name_tool -id "@executable_path/../libs/libpoppler.dylib" \
-    "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
-# Rewrite libpoppler-glib absolute dependency paths
-for OLD_PATH in \
-    "/usr/local/opt/cairo/lib/libcairo.2.dylib" \
-    "/opt/homebrew/opt/cairo/lib/libcairo.2.dylib" \
-    "/usr/local/opt/freetype/lib/libfreetype.6.dylib" \
-    "/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib" \
-    "/usr/local/opt/glib/lib/libgio-2.0.0.dylib" \
-    "/opt/homebrew/opt/glib/lib/libgio-2.0.0.dylib" \
-    "/usr/local/opt/glib/lib/libgobject-2.0.0.dylib" \
-    "/opt/homebrew/opt/glib/lib/libgobject-2.0.0.dylib" \
-    "/usr/local/opt/glib/lib/libglib-2.0.0.dylib" \
-    "/opt/homebrew/opt/glib/lib/libglib-2.0.0.dylib" \
-    "/usr/local/opt/gettext/lib/libintl.8.dylib" \
-    "/opt/homebrew/opt/gettext/lib/libintl.8.dylib"
-do
-    LIBNAME=$(basename "${OLD_PATH}")
-    install_name_tool -change "${OLD_PATH}" \
-        "@executable_path/../libs/${LIBNAME}" \
-        "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
+
+# Catch any stragglers among the libs dylibbundler already copied
+for LIB in "${LIBS_DIR}"/*.dylib; do
+    fix_and_bundle "${LIB}"
 done
-codesign --force --sign - "${LIBS_DIR}/libpoppler-glib.8.dylib" 2>/dev/null || true
-# Rewrite libpoppler.161 absolute dependency paths
-for OLD_PATH in \
-    "/usr/local/opt/freetype/lib/libfreetype.6.dylib" \
-    "/opt/homebrew/opt/freetype/lib/libfreetype.6.dylib" \
-    "/usr/local/opt/fontconfig/lib/libfontconfig.1.dylib" \
-    "/opt/homebrew/opt/fontconfig/lib/libfontconfig.1.dylib" \
-    "/usr/local/opt/libpng/lib/libpng16.16.dylib" \
-    "/opt/homebrew/opt/libpng/lib/libpng16.16.dylib"
-do
-    LIBNAME=$(basename "${OLD_PATH}")
-    install_name_tool -change "${OLD_PATH}" \
-        "@executable_path/../libs/${LIBNAME}" \
-        "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
-done
-# Rewrite libpoppler.dylib absolute dependency paths
-for OLD_PATH in \
-    "/usr/local/opt/jpeg-turbo/lib/libjpeg.8.dylib" \
-    "/opt/homebrew/opt/jpeg-turbo/lib/libjpeg.8.dylib" \
-    "/usr/local/opt/gpgmepp/lib/libgpgmepp.7.dylib" \
-    "/opt/homebrew/opt/gpgmepp/lib/libgpgmepp.7.dylib" \
-    "/usr/local/opt/openjpeg/lib/libopenjp2.7.dylib" \
-    "/opt/homebrew/opt/openjpeg/lib/libopenjp2.7.dylib" \
-    "/usr/local/opt/little-cms2/lib/liblcms2.2.dylib" \
-    "/opt/homebrew/opt/little-cms2/lib/liblcms2.2.dylib" \
-    "/usr/local/opt/libtiff/lib/libtiff.6.dylib" \
-    "/opt/homebrew/opt/libtiff/lib/libtiff.6.dylib" \
-    "/usr/local/opt/nss/lib/libnss3.dylib" \
-    "/opt/homebrew/opt/nss/lib/libnss3.dylib" \
-    "/usr/local/opt/nss/lib/libnssutil3.dylib" \
-    "/opt/homebrew/opt/nss/lib/libnssutil3.dylib" \
-    "/usr/local/opt/nss/lib/libsmime3.dylib" \
-    "/opt/homebrew/opt/nss/lib/libsmime3.dylib" \
-    "/usr/local/opt/nss/lib/libssl3.dylib" \
-    "/opt/homebrew/opt/nss/lib/libssl3.dylib" \
-    "/usr/local/opt/nspr/lib/libplds4.dylib" \
-    "/opt/homebrew/opt/nspr/lib/libplds4.dylib" \
-    "/usr/local/opt/nspr/lib/libplc4.dylib" \
-    "/opt/homebrew/opt/nspr/lib/libplc4.dylib" \
-    "/usr/local/opt/nspr/lib/libnspr4.dylib" \
-    "/opt/homebrew/opt/nspr/lib/libnspr4.dylib" \
-    "/usr/local/opt/gpgme/lib/libgpgme.45.dylib" \
-    "/opt/homebrew/opt/gpgme/lib/libgpgme.45.dylib"
-do
-    LIBNAME=$(basename "${OLD_PATH}")
-    install_name_tool -change "${OLD_PATH}" \
-        "@executable_path/../libs/${LIBNAME}" \
-        "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
-done
-codesign --force --sign - "${LIBS_DIR}/libpoppler.dylib" 2>/dev/null || true
-codesign --force --sign - "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
-codesign --force --sign - "${LIBS_DIR}/libpoppler.162.dylib" 2>/dev/null || true
-# Create version symlinks so both arm64 and x86_64 rpath references resolve
-ln -sf libpoppler.dylib "${LIBS_DIR}/libpoppler.161.dylib" 2>/dev/null || true
-ln -sf libpoppler.dylib "${LIBS_DIR}/libpoppler.162.dylib" 2>/dev/null || true
 # ── 8. Bundle GDK pixbuf loaders ─────────────────────────────────────────────
 # GTK needs pixbuf loaders to render images; copy and update the cache.
 
@@ -565,6 +420,18 @@ if [ -d "${HOMEBREW_PREFIX}/share/fonts" ]; then
           "${APP_DIR}/Contents/Resources/share/fonts/"
 fi
 
+
+
+# ── 10b. Make dlopen()ed plugins relocatable ──────────────────────────────────
+# GDK pixbuf loaders, Pango modules and Guile extensions are loaded at runtime,
+# so dylibbundler doesn't see them. Fix their Homebrew dependencies too.
+echo "Fixing runtime-loaded plugins..."
+while IFS= read -r PLUGIN; do
+    if file -b "${PLUGIN}" | grep -q "Mach-O"; then
+        fix_and_bundle "${PLUGIN}"
+    fi
+done < <(find "${APP_DIR}/Contents/Resources/lib" "${APP_DIR}/Contents/libs/pango" \
+              -type f \( -name "*.so" -o -name "*.dylib" \) 2>/dev/null)
 
 # ── 11. Create DMG ────────────────────────────────────────────────────────────
 
