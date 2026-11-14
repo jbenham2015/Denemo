@@ -24,6 +24,8 @@
 #define HARMONIC_WIDTH 9
 #define HARMONIC_HEIGHT 10
 #define HARMONIC_SEMI_HEIGHT 5
+#define XCIRCLE_WIDTH 14
+#define TRIANGLE_WIDTH 12
 #define STEM_HEIGHT 44
 #define EXTRA_STEM_HEIGHT 49    /* A bad hack */
 #define STEM_WIDTH 11

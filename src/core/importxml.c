@@ -932,6 +932,10 @@ parseNote (xmlNodePtr noteElem, DenemoObject * chordObj, clef *currentClef)
               noteHeadType = DENEMO_HARMONIC_NOTEHEAD;
             else if (strcmp (noteHeadName, "diamond") == 0)
               noteHeadType = DENEMO_DIAMOND_NOTEHEAD;
+            else if (strcmp (noteHeadName, "xcircle") == 0)
+              noteHeadType = DENEMO_XCIRCLE_NOTEHEAD;
+            else if (strcmp (noteHeadName, "triangle") == 0)
+              noteHeadType = DENEMO_TRIANGLE_NOTEHEAD;
             else
               {
                 g_warning ("Unknown notehead type \"%s\"; defaulting to " "normal", noteHeadName);

@@ -691,6 +691,12 @@ newXMLNoteHead (xmlNodePtr parent, xmlNsPtr ns, enum headtype noteHeadType)
     case DENEMO_DIAMOND_NOTEHEAD:
       headTypeName = "diamond";
       break;
+    case DENEMO_XCIRCLE_NOTEHEAD:
+      headTypeName = "xcircle";
+      break;
+    case DENEMO_TRIANGLE_NOTEHEAD:
+      headTypeName = "triangle";
+      break;
     default:
       g_warning ("Unknown notehead type %d, using normal", noteHeadType);
       headTypeName = "normal";

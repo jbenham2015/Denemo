@@ -19,8 +19,8 @@
 /**
  * Array of different Notehead types
  */
-gchar *notehead[4] = { N_("Normal"), N_("Cross"), N_("Diamond"),
-  N_("Harmonic")
+gchar *notehead[6] = { N_("Normal"), N_("Cross"), N_("Diamond"),
+  N_("Harmonic"), N_("XCircle"), N_("Triangle")
 };
 
 
@@ -39,6 +39,10 @@ texttohead (gchar * text)
     return DENEMO_DIAMOND_NOTEHEAD;
   else if (g_strcasecmp (text, _("Harmonic")) == 0)
     return DENEMO_HARMONIC_NOTEHEAD;
+  else if (g_strcasecmp (text, _("XCircle")) == 0)
+    return DENEMO_XCIRCLE_NOTEHEAD;
+  else if (g_strcasecmp (text, _("Triangle")) == 0)
+    return DENEMO_TRIANGLE_NOTEHEAD;
   else
     return DENEMO_NORMAL_NOTEHEAD;
 }
@@ -98,7 +102,7 @@ set_notehead (GtkAction * action, DenemoScriptParam * param)
 
   if (!list)
     {
-      for (i = 0; i < 4; i++)
+      for (i = 0; i < G_N_ELEMENTS (notehead); i++)
         {
           list = g_list_append (list, _(notehead[i]));
         }

@@ -1392,6 +1392,14 @@ generate_lily_for_obj (DenemoProject * gui, GtkTextIter * iter, DenemoObject * c
                             g_string_append_printf (ret, "\n" TAB "\\once \\override NoteHead #'style = #'harmonic ");
                             is_normalnotehead = FALSE;
                             break;
+                          case DENEMO_XCIRCLE_NOTEHEAD:
+                            g_string_append_printf (ret, "\n" TAB "\\once \\override NoteHead #'style = #'xcircle ");
+                            is_normalnotehead = FALSE;
+                            break;
+                          case DENEMO_TRIANGLE_NOTEHEAD:
+                            g_string_append_printf (ret, "\n" TAB "\\once \\override NoteHead #'style = #'triangle ");
+                            is_normalnotehead = FALSE;
+                            break;
                           case DENEMO_DIAMOND_NOTEHEAD:
                             g_string_append_printf (ret, "\n" TAB "\\once \\override Voice.NoteHead #'style = #'diamond ");
                             is_normalnotehead = FALSE;

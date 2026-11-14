@@ -27,7 +27,9 @@ typedef enum headtype
   DENEMO_CROSS_NOTEHEAD,
   DENEMO_HARMONIC_NOTEHEAD,
   DENEMO_DIAMOND_NOTEHEAD,
-  DENEMO_BLACK_NOTEHEAD
+  DENEMO_BLACK_NOTEHEAD,
+  DENEMO_XCIRCLE_NOTEHEAD,  /* circled cross: crash cymbal */
+  DENEMO_TRIANGLE_NOTEHEAD /* triangle: cowbell, triangle */
 }headtype;
 
 /**

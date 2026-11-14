@@ -93,12 +93,16 @@ draw_notehead (cairo_t * cr, note * thenote, gint duration, gint numdots, gint x
      three elements.  The change has defeated what had been semi-elegance;
      grrr.  */
 
-  static gint headwidths[7] = { WHOLEHEAD_WIDTH, HALFHEAD_WIDTH,
+  static gint headwidths[9] = { WHOLEHEAD_WIDTH, HALFHEAD_WIDTH,
     NOTEHEAD_WIDTH, DIAMOND_WIDTH,
     CROSS_WIDTH, HARMONIC_WIDTH, DIAMOND_WIDTH,
+    XCIRCLE_WIDTH, TRIANGLE_WIDTH,
   };
 
-  static gunichar head_char[7] = { 0x54, 0x55, 0x56, 0x93, 0x64, 0x92, 0x56
+  /* indices 7 and 8: circled cross (0x65) and filled triangle (0x69) in feta26.
+     index 3: filled diamond (0x72) - 0x93 renders as an accent mark in fonts/feta.ttf */
+  static gunichar head_char[9] = { 0x54, 0x55, 0x56, 0x72, 0x64, 0x92, 0x56,
+    0x65, 0x69
   };
   gint height = thenote->y;
   gint noteheadtype = 1;
@@ -116,6 +120,18 @@ draw_notehead (cairo_t * cr, note * thenote, gint duration, gint numdots, gint x
   else if (thenote->noteheadtype == DENEMO_HARMONIC_NOTEHEAD)
     {
       noteheadtype = 5;
+    }
+  else if (thenote->noteheadtype == DENEMO_DIAMOND_NOTEHEAD)
+    {
+      noteheadtype = 3;
+    }
+  else if (thenote->noteheadtype == DENEMO_XCIRCLE_NOTEHEAD)
+    {
+      noteheadtype = 7;
+    }
+  else if (thenote->noteheadtype == DENEMO_TRIANGLE_NOTEHEAD)
+    {
+      noteheadtype = 8;
     }
   else if (thenote->noteheadtype == DENEMO_BLACK_NOTEHEAD)
     {
