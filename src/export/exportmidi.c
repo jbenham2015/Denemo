@@ -60,6 +60,7 @@
 #include "export/exportmidi.h"
 #include "audio/instrumentname.h"
 #include "audio/audiointerface.h"
+#include "audio/drummap.h"
 #include "core/view.h"
 #include "printview/svgview.h"
 #include "smf.h"
@@ -1515,6 +1516,9 @@ exportmidi (gchar * thefilename, DenemoMovement * si)
                               enshift = thenote->enshift;
                               notenumber = dia_to_midinote (mid_c_offset) + enshift;
                               notenumber += cur_transposition;
+                              /* on a drum staff the position + notehead choose the drum, not the pitch */
+                              if (drum_map_applies (curstaffstruct->midi_channel, curstaffstruct->midi_instrument ? curstaffstruct->midi_instrument->str : NULL))
+                                notenumber = drum_map_key (mid_c_offset, thenote->noteheadtype, notenumber);
 
                               if (notenumber > 127)
                                 {

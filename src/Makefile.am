@@ -4,6 +4,7 @@ denemo_SOURCES = \
   audio/audio.h \
   audio/audiocapture.c \
   audio/audiocapture.h \
+  audio/drummap.h \
   audio/instrumentname.c \
   audio/instrumentname.h \
   audio/midi.c \

@@ -13,6 +13,7 @@
 
 #include "audio/audiointerface.h"
 #include "audio/eventqueue.h"
+#include "audio/drummap.h"
 #include "audio/dummybackend.h"
 #include "source/sourceaudio.h"
 #ifdef _HAVE_JACK_
@@ -743,6 +744,13 @@ play_notes (backend_type_t backend, int port, int channel, chord * chord_to_play
           gchar key = 60 + 12 * (offset / 7) + key_offset[offset % 7 + 6];
           key += n->enshift;
 		  key += curstaff->transposition;
+          /* on a drum staff the position + notehead choose the drum, not the pitch */
+          if (drum_map_applies (channel, curstaff->midi_instrument ? curstaff->midi_instrument->str : NULL))
+            {
+              gint mapped = drum_map_key (n->mid_c_offset, n->noteheadtype, key);
+              g_debug ("drum map: position %d head %d: key %d -> %d", n->mid_c_offset, n->noteheadtype, key, mapped);
+              key = mapped;
+            }
           // FIXME
           play_note (backend, port, channel, key, 200, 127);
         }

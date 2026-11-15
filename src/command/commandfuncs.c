@@ -30,6 +30,7 @@
 #include "core/view.h"
 #include "audio/pitchentry.h"
 #include "audio/audiointerface.h"
+#include "audio/drummap.h"
 #include "display/displayanimation.h"
 #include "core/cache.h"
 /**
@@ -1863,6 +1864,8 @@ dnm_insertnote (DenemoProject * gui, gint duration, input_mode mode, gboolean re
                   /* 60 is middle-C in MIDI keys */
                   gchar key = 60 + 12 * (offset / 7) + key_offset[offset % 7 + 6];
                   key += n->enshift;
+                  if (drum_map_applies (curstaffstruct->midi_channel, curstaffstruct->midi_instrument ? curstaffstruct->midi_instrument->str : NULL))
+                    key = drum_map_key (n->mid_c_offset, n->noteheadtype, key);
 #define MIDI_RESOLUTION (384)
                  gint duration_ms = 1000 * mudela_obj_new->durinticks * 60.0 / (si->tempo * MIDI_RESOLUTION);
                  g_debug("duration %d duration ms = %d\n", duration, duration_ms);
