@@ -27,6 +27,7 @@ static const DrumMapEntry drum_map[] = {
   {  -2, DENEMO_DIAMOND_NOTEHEAD   ,  53, "ridebell" },
   {  -2, DENEMO_NORMAL_NOTEHEAD    ,  50, "hightom" },
   {  -1, DENEMO_CROSS_NOTEHEAD     ,  42, "hihat" },
+  {  -1, DENEMO_XCIRCLE_NOTEHEAD   ,  46, "openhihat" },
   {   0, DENEMO_CROSS_NOTEHEAD     ,  49, "crashcymbal" },
   {   1, DENEMO_CROSS_NOTEHEAD     ,  52, "chinesecymbal" },
 };
