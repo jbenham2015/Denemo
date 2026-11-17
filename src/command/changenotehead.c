@@ -16,6 +16,8 @@
 #include "command/staff.h"
 #include "core/utils.h"
 #include "command/commandfuncs.h"
+#include "audio/audiointerface.h"
+#include "audio/drummap.h"
 /**
  * Array of different Notehead types
  */
@@ -64,6 +66,15 @@ insertnotehead (DenemoMovement * si, gchar * notehead_string)
        * to like giving chords non-standard noteheads. This is
        * just a default behavior for the time being. */
       ((note *) ((chord *) obj->object)->notes->data)->noteheadtype = texttohead (notehead_string);
+
+      /* On a drum staff the notehead can change which drum sounds, so play the note again
+       * so that the preview reflects the new head (same preference as for note entry). */
+      if (Denemo.prefs.immediateplayback && si->currentstaff && si->currentstaff->data)
+        {
+          DenemoStaff *curstaffstruct = (DenemoStaff *) si->currentstaff->data;
+          if (drum_map_applies (curstaffstruct->midi_channel, curstaffstruct->midi_instrument ? curstaffstruct->midi_instrument->str : NULL))
+            play_notes (DEFAULT_BACKEND, curstaffstruct->midi_port, curstaffstruct->midi_channel, (chord *) obj->object);
+        }
     }
 
 }
